@@ -1,0 +1,46 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "01_prep_data",
+            "type": "python",
+            "request": "launch",
+            "program": "01_prep_data.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--root_dir", "D:\\dataset_covid_GeoCovGraph",
+            ]
+        },
+        {
+            "name": "02_train_hetero_graph_self_supervised",
+            "type": "python",
+            "request": "launch",
+            "program": "02_train_hetero_graph_self_supervised.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--projectname", "twitter_attempt_01",
+                "--dataset", "proteins",
+                "--model", "gcn",
+                "--loss", "infonce",
+                "--augment_list", "edge_perturbation",
+                "--augment_list", "node_dropping",
+                "--batch_size", "256",
+                "--epochs", "2",
+            ]
+        },
+
+    ]
+}
