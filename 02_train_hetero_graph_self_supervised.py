@@ -36,11 +36,14 @@ from GraphSSL.loss import infonce
 # runtime arguments
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--projectname", type=str, required=True,
-                    help="Weights and Biases project name, also used as name of folder for model snapshots and logs")
 parser.add_argument("--run_name", type=str,
                     default=datetime.datetime.now().strftime("%m%d_%H%M%S"),
                     help="unique name for this run")
+parser.add_argument("--data_src", type=str, required=True,
+                    help="source data folder")
+parser.add_argument("--data_dst", type=str, required=True,
+                    help="destination data/logs folder, also used as wandb project name")
+
 parser.add_argument("--device", type=str,
                     default=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 
@@ -49,7 +52,7 @@ parser.add_argument("--epochs", dest="epochs", action="store", default=20, type=
 parser.add_argument("--batch_size", dest="batch_size", action="store", default=64, type=int)
 parser.add_argument("--num_workers", dest="num_workers", action="store", default=8, type=int)
 parser.add_argument("--dataset", dest="dataset", action="store", required=True, type=str,
-                    choices=["proteins", "enzymes", "collab", "reddit_binary", "reddit_multi", "imdb_binary",
+                    choices=["GeoCoV19", "proteins", "enzymes", "collab", "reddit_binary", "reddit_multi", "imdb_binary",
                              "imdb_multi", "dd", "mutag", "nci1"],
                     help="dataset on which you want to train the model")
 parser.add_argument("--model", dest="model", action="store", default="gcn", type=str,
@@ -124,9 +127,9 @@ def main(args):
     logger.info(f"args: {args}")
 
     # Initialize wandb as soon as possible to log all stdout to the cloud
-    wandb.init(project=args.projectname, config=args)
+    wandb.init(project=args.data_dst, config=args)
 
-    dataset, input_dim, num_classes = load_dataset(args.dataset)
+    dataset, input_dim, num_classes = load_dataset(name=args.dataset, root_dir=args.data_src)
 
     # split the data into train / val / test sets
     train_dataset, val_dataset, test_dataset = split_dataset(dataset, args.train_data_percent)

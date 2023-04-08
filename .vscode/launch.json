@@ -4,6 +4,10 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
+
+
+
         {
             "name": "Python: Current File",
             "type": "python",
@@ -21,6 +25,8 @@
             "justMyCode": true,
             "args": [
                 "--root_dir", "D:\\dataset_covid_GeoCovGraph",
+                // "--force_rebuild",
+                // "--revalidate_all_date_by_reading_from_file",
             ]
         },
         {
@@ -31,8 +37,10 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--projectname", "twitter_attempt_01",
-                "--dataset", "proteins",
+                "--data_src", "D:\\dataset_covid_GeoCovGraph",
+                "--data_dst", "twitter_attempt_02",
+                "--dataset", "GeoCoV19",
+                //"--dataset", "proteins",
                 "--model", "gcn",
                 "--loss", "infonce",
                 "--augment_list", "edge_perturbation",
