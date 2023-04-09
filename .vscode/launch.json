@@ -49,6 +49,17 @@
                 "--epochs", "2",
             ]
         },
-
+        
+        {
+            "name": "03_stream_process_files",
+            "type": "python",
+            "request": "launch",
+            "program": "03_stream_process_files.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--data_root", "D:\\dataset_covid_GeoCovGraph",
+            ]
+        },
     ]
 }

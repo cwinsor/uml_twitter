@@ -9,7 +9,7 @@ from torch_geometric.data import Data, Dataset
 
 from GraphSSL.view_functions import EdgePerturbation, Diffusion, \
     DiffusionWithSample, UniformSample, RWSample, NodeAttrMask
-
+from geocov19_graph_dataset import GeoCoV19GraphDataset
 
 DATA_SPLIT = [0.7, 0.2, 0.1]  # Train / val / test split ratio
 
@@ -58,7 +58,7 @@ class CatDegOnehot(object):
         return data
 
 
-def load_dataset(name, expand_features=True):
+def load_dataset(name, root_dir=None, expand_features=True):
     """
     Load a specific TUDataset (or our own) and optionally expand the set of
     node features by adding node degrees as one hot encodings.
@@ -68,34 +68,41 @@ def load_dataset(name, expand_features=True):
             the node features using their degrees. (default: :obj:`True`)
     """
 
-    if name == "proteins":
-        dataset = TUDataset(root="/tmp/TUDataset/PROTEINS", name="PROTEINS", use_node_attr=True)
-    elif name == "enzymes":
-        dataset = TUDataset(root="/tmp/TUDataset/ENZYMES", name="ENZYMES", use_node_attr=True)
-    elif name == "collab":
-        dataset = TUDataset(root="/tmp/TUDataset/COLLAB", name="COLLAB", use_node_attr=True)
-    elif name == "reddit_binary":
-        dataset = TUDataset(root="/tmp/TUDataset/REDDIT-BINARY", name="REDDIT-BINARY", use_node_attr=True)
-    elif name == "reddit_multi":
-        dataset = TUDataset(root="/tmp/TUDataset/REDDIT-MULTI-5K", name="REDDIT-MULTI-5K", use_node_attr=True)
-    elif name == "imdb_binary":
-        dataset = TUDataset(root="/tmp/TUDataset/IMDB-BINARY", name="IMDB-BINARY", use_node_attr=True)
-    elif name == "imdb_multi":
-        dataset = TUDataset(root="/tmp/TUDataset/IMDB-MULTI", name="IMDB-MULTI", use_node_attr=True)
-    elif name == "dd":
-        dataset = TUDataset(root="/tmp/TUDataset/DD", name="DD", use_node_attr=True)
-    elif name == "mutag":
-        dataset = TUDataset(root="/tmp/TUDataset/MUTAG", name="MUTAG", use_node_attr=True)
-    elif name == "nci1":
-        dataset = TUDataset(root="/tmp/TUDataset/NCI1", name="NCI1", use_node_attr=True)
+    # torch_geometric.data.HeteroData
+    if name == "GeoCoV19":
+        dataset = GeoCoV19GraphDataset(root=root_dir)
+        num_classes = None
 
-    num_classes = dataset.num_classes
-    if dataset[0].x is None or expand_features:
-        max_degree = get_max_deg(dataset)
-        transform = CatDegOnehot(max_degree)
-        dataset = [transform(graph) for graph in dataset]
+    # torch_geometric.datasets.TUDataset
     else:
-        dataset = [graph for graph in dataset]
+        if name == "proteins":
+            dataset = TUDataset(root="/tmp/TUDataset/PROTEINS", name="PROTEINS", use_node_attr=True)
+        elif name == "enzymes":
+            dataset = TUDataset(root="/tmp/TUDataset/ENZYMES", name="ENZYMES", use_node_attr=True)
+        elif name == "collab":
+            dataset = TUDataset(root="/tmp/TUDataset/COLLAB", name="COLLAB", use_node_attr=True)
+        elif name == "reddit_binary":
+            dataset = TUDataset(root="/tmp/TUDataset/REDDIT-BINARY", name="REDDIT-BINARY", use_node_attr=True)
+        elif name == "reddit_multi":
+            dataset = TUDataset(root="/tmp/TUDataset/REDDIT-MULTI-5K", name="REDDIT-MULTI-5K", use_node_attr=True)
+        elif name == "imdb_binary":
+            dataset = TUDataset(root="/tmp/TUDataset/IMDB-BINARY", name="IMDB-BINARY", use_node_attr=True)
+        elif name == "imdb_multi":
+            dataset = TUDataset(root="/tmp/TUDataset/IMDB-MULTI", name="IMDB-MULTI", use_node_attr=True)
+        elif name == "dd":
+            dataset = TUDataset(root="/tmp/TUDataset/DD", name="DD", use_node_attr=True)
+        elif name == "mutag":
+            dataset = TUDataset(root="/tmp/TUDataset/MUTAG", name="MUTAG", use_node_attr=True)
+        elif name == "nci1":
+            dataset = TUDataset(root="/tmp/TUDataset/NCI1", name="NCI1", use_node_attr=True)
+        num_classes = dataset.num_classes
+
+        if dataset[0].x is None or expand_features:
+            max_degree = get_max_deg(dataset)
+            transform = CatDegOnehot(max_degree)
+            dataset = [transform(graph) for graph in dataset]
+        else:
+            dataset = [graph for graph in dataset]
     feat_dim = dataset[0].num_node_features
 
     return dataset, feat_dim, num_classes
@@ -110,7 +117,7 @@ def split_dataset(dataset, train_data_percent=1.0):
             which is labelled. (default 1.0)
     """
 
-    random.shuffle(dataset)
+    # random.shuffle(dataset)  # ZONA
 
     n = len(dataset)
     train_split, val_split, test_split = DATA_SPLIT
