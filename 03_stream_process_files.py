@@ -67,6 +67,20 @@ class OriginalTweet():
         json_object = json.dumps(the_data, indent=4)
         return json_object
 
+def process_tweet_stream(tweet_stream, group_1_in, group_2_in, group_0_out, group_1_out):
+
+    cutoff_1 = 1234
+    cutoff_2 = math.inf
+
+    current_group_1 = group_1_in.read()
+    current_group_2 = group_2_in.read()
+    current_input = tweet_stream.read()
+
+    
+
+            self.cutoff = cutoff
+
+
 def create_initial_group_files(root_folder):
 
     def write_json(root_folder, file_name, breakpoint):

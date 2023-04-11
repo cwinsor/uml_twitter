@@ -61,5 +61,18 @@
                 "--data_root", "D:\\dataset_covid_GeoCovGraph",
             ]
         },
+
+        {
+            "name": "04_experiment",
+            "type": "python",
+            "request": "launch",
+            "program": "04_experiment.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--data_root", "D:\\dataset_covid_GeoCovGraph",
+            ]
+        },
+
     ]
 }
