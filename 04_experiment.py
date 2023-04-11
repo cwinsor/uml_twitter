@@ -70,7 +70,7 @@ class OriginalTweet():
             self.retweet_dates = [tweet["created_at"]]
             self.number_retweets = 1
 
-    def from_json_standard_format(self, the_data_in):
+    def from_json_standard_format(self, the_data):
         # the_data = json.loads(the_data_in)
         # the_data = ijson.items(the_data_in, "", multiple_values=True)
 
@@ -92,6 +92,11 @@ class OriginalTweet():
 
     def __lt__(self, other):
         return self.original_tweet_id < other.original_tweet_id
+    def __gt__(self, other):
+        return self.original_tweet_id > other.original_tweet_id
+    def __eq__(self, other):
+        return self.original_tweet_id == other.original_tweet_id
+    
 
     def merge(self, other):
         self.retweet_user_ids += other.retweet_user_ids
@@ -118,6 +123,11 @@ class OriginalTweet():
 #     # ijson.
 #     # filehandle.write(json_object)
 
+def get_next(ijson_stream):
+    tweet_dict = next(ijson_stream)
+    tweet_obj = OriginalTweet()
+    tweet_obj.from_json_standard_format(tweet_dict)
+    return tweet_obj
 
 def main(args):
 
@@ -187,33 +197,40 @@ def main(args):
 
         with open(full_path_fresh_tweets, "r", encoding="utf-8") as fresh_tweets_file:
             fresh_tweets = ijson.items(fresh_tweets_file, "", multiple_values=True)
-            fresh_tweet = next(fresh_tweets)
 
             with open(full_path_group_in, "r", encoding="utf-8") as group_in_file:  
                 group_tweets = ijson.items(group_in_file, "", multiple_values=True)
-                group_tweet = next(group_tweets)
 
-                if group_tweet < fresh_tweet:
-                    # write(group_out_file, group_tweet)
-                    # group_tweet = read(group_in_file)
-                    print("get next group tweet")
-                    group_tweet = next(group_tweets)
+                fresh_tweet = get_next(fresh_tweets)
+                group_tweet = get_next(group_tweets)
+                while True:
 
-                elif group_tweet == fresh_tweet:
-                    # new_tweet.merge(group_tweet)
-                    # group_tweet = read(group_in_file)
-                    print("merge and get next group tweet")
-                    group_tweet = next(group_tweets)
+                    print(f"group {group_tweet.original_tweet_id} fresh {fresh_tweet.original_tweet_id}")
 
-                else:
-                    # write(group_out_file, fresh_tweet)
-                    # fresh_tweet = read(fresh_tweets_file)
-                    print("get next fresh tweet")
-                    fresh_tweet = next(fresh_tweets)
+                    if group_tweet < fresh_tweet:
+                        # write(group_out_file, group_tweet)
+                        # group_tweet = read(group_in_file)
+                        print("get next group tweet")
+                        group_tweet = get_next(group_tweets)
+                        print("got it")
+
+                    elif group_tweet == fresh_tweet:
+                        # new_tweet.merge(group_tweet)
+                        # group_tweet = read(group_in_file)
+                        print("merge and get next group tweet")
+                        group_tweet = get_next(group_tweets)
+                        print("merged")
+
+                    else:
+                        # write(group_out_file, fresh_tweet)
+                        # fresh_tweet = read(fresh_tweets_file)
+                        print("get next fresh tweet")
+                        fresh_tweet = get_next(fresh_tweets)
+                        print("got it")
 
         # while there are still in_hand that are < threshold for next group...
         # read/write in_hand to d1
-               
+
     logger.info("done")
 
 
