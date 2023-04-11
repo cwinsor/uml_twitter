@@ -56,7 +56,11 @@ class OriginalTweetEncoder(JSONEncoder):
 
 class OriginalTweet():
     def __init__(self):
-        pass
+        self.original_tweet_id = math.inf
+        self.original_tweet_text = "--NONE--"
+        self.retweet_user_ids = []
+        self.retweet_dates = []
+        self.number_retweets = 0
 
     def is_retweet(tweet):
         return "retweeted_status" in tweet.keys()
@@ -103,7 +107,6 @@ class OriginalTweet():
         self.retweet_dates += other.retweet_dates
         self.number_retweets = len(self.retweet_user_ids)
 
-
 # def read(filehandle):
 #     #    the_data = ijson.items(the_data_in, "", multiple_values=True)
 
@@ -124,10 +127,15 @@ class OriginalTweet():
 #     # filehandle.write(json_object)
 
 def get_next(ijson_stream):
-    tweet_dict = next(ijson_stream)
     tweet_obj = OriginalTweet()
-    tweet_obj.from_json_standard_format(tweet_dict)
-    return tweet_obj
+    try:
+        tweet_dict = next(ijson_stream)
+        tweet_obj.from_json_standard_format(tweet_dict)
+    except StopIteration:
+        pass
+    finally:
+        return tweet_obj
+
 
 def main(args):
 
@@ -189,47 +197,42 @@ def main(args):
     # with open(full_path_group_out, "w", encoding="utf-8") as group_out_file: 
                     
     # second pass - merging
-    group_file_list = ["sns_ids_geo_2020-02-01.jsonl"]
-    for file_name in group_file_list:
-        full_path_fresh_tweets = args.data_root + "\\2_selected_and_sorted\\" + file_name
-        full_path_group_in = args.data_root + "\\3_grouped\\" + "group_1.jsonl"
-        full_path_group_out = args.data_root + "\\3_grouped\\" + "group_1b.jsonl"
+    full_path_fresh_tweets = args.data_root + "\\2_selected_and_sorted\\" + "sns_ids_geo_2020-02-01.jsonl"
+    fresh_tweets_file_handle = open(full_path_fresh_tweets, "r", encoding="utf-8")
+    fresh_tweets = ijson.items(fresh_tweets_file_handle, "", multiple_values=True)
+    fresh_tweet = get_next(fresh_tweets)
 
-        with open(full_path_fresh_tweets, "r", encoding="utf-8") as fresh_tweets_file:
-            fresh_tweets = ijson.items(fresh_tweets_file, "", multiple_values=True)
+    full_path_group_in = args.data_root + "\\3_grouped\\" + "group_1.jsonl"
+    prior_tweets_file_handle = open(full_path_group_in, "r", encoding="utf-8")
+    prior_tweets = ijson.items(prior_tweets_file_handle, "", multiple_values=True)
+    prior_tweet = get_next(prior_tweets)
 
-            with open(full_path_group_in, "r", encoding="utf-8") as group_in_file:  
-                group_tweets = ijson.items(group_in_file, "", multiple_values=True)
+    full_path_group_out = args.data_root + "\\3_grouped\\" + "group_1b.jsonl"
+    out_file = open(full_path_group_out, "w", encoding="utf-8")
 
-                fresh_tweet = get_next(fresh_tweets)
-                group_tweet = get_next(group_tweets)
-                while True:
+    while True:
 
-                    print(f"group {group_tweet.original_tweet_id} fresh {fresh_tweet.original_tweet_id}")
+        print(f"group {prior_tweet.original_tweet_id} fresh {fresh_tweet.original_tweet_id}")
 
-                    if group_tweet < fresh_tweet:
-                        # write(group_out_file, group_tweet)
-                        # group_tweet = read(group_in_file)
-                        print("get next group tweet")
-                        group_tweet = get_next(group_tweets)
-                        print("got it")
+        if prior_tweet < fresh_tweet:
+            print("write from group, get next group")
+            json_object = json.dumps(prior_tweet, cls=OriginalTweetEncoder)
+            out_file.write(json_object)
+            prior_tweet = get_next(prior_tweets)
 
-                    elif group_tweet == fresh_tweet:
-                        # new_tweet.merge(group_tweet)
-                        # group_tweet = read(group_in_file)
-                        print("merge and get next group tweet")
-                        group_tweet = get_next(group_tweets)
-                        print("merged")
+        elif prior_tweet == fresh_tweet:
+            # if both group and fresh are .inf flagged then we are done
+            if prior_tweet.original_tweet_id == math.inf:
+                break
+            print("merge group into fresh, get next group")
+            fresh_tweet.merge(prior_tweet)
+            prior_tweet = get_next(prior_tweets)
 
-                    else:
-                        # write(group_out_file, fresh_tweet)
-                        # fresh_tweet = read(fresh_tweets_file)
-                        print("get next fresh tweet")
-                        fresh_tweet = get_next(fresh_tweets)
-                        print("got it")
-
-        # while there are still in_hand that are < threshold for next group...
-        # read/write in_hand to d1
+        else:
+            print("write from fresh, get next fresh")
+            json_object = json.dumps(fresh_tweet, cls=OriginalTweetEncoder)
+            out_file.write(json_object)
+            fresh_tweet = get_next(fresh_tweets)
 
     logger.info("done")
 
