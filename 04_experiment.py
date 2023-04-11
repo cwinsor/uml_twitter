@@ -61,7 +61,7 @@ class OriginalTweet():
     def is_retweet(tweet):
         return "retweeted_status" in tweet.keys()
     
-    def from_json_raw_format(self, tweet):
+    def from_raw_format(self, tweet):
         self.is_retweet = "retweeted_status" in tweet.keys()
         if self.is_retweet:
             self.original_tweet_id = tweet["retweeted_status"]["id"]
@@ -72,7 +72,7 @@ class OriginalTweet():
 
     def from_json_standard_format(self, the_data_in):
         # the_data = json.loads(the_data_in)
-        the_data = ijson.items(the_data_in, "", multiple_values=True)
+        # the_data = ijson.items(the_data_in, "", multiple_values=True)
 
         self.original_tweet_id = the_data["original_tweet_id"]
         self.original_tweet_text = the_data["original_tweet_text"]
@@ -99,14 +99,17 @@ class OriginalTweet():
         self.number_retweets = len(self.retweet_user_ids)
 
 
-def read(filehandle):
-    y = filehandle.read()
-    original_tweet = OriginalTweet()
-    original_tweet.from_json_standard_format(y)
-    return object
+# def read(filehandle):
+#     #    the_data = ijson.items(the_data_in, "", multiple_values=True)
+
+#     y = filehandle.read()
+#     original_tweet = OriginalTweet()
+#     original_tweet.from_json_standard_format(y)
+#     return object
 
 
 # def write(filehandle, object):
+#     assert False, "zona not code complete"
 #     for o in object:
 #         json_object = json.dumps(object, cls=OriginalTweetEncoder)
 #         filehandle.write(json_object)
@@ -130,8 +133,8 @@ def main(args):
     # # parse out the retweets
     # # sort by original tweet ID
     # # write to "parsed_and_sorted" file
-    # file_list = ["ids_geo_2020-02-01.jsonl"]
-    # for file_name in file_list:
+    # group_file_list = ["ids_geo_2020-02-01.jsonl"]
+    # for file_name in group_file_list:
     #     full_path_in = args.data_root + "\\1_raw\\" + file_name
     #     full_path_out = args.data_root + "\\2_selected_and_sorted\\" + "sns_" + file_name
 
@@ -144,7 +147,7 @@ def main(args):
     #         for tweet in tweets:
     #             if OriginalTweet.is_retweet(tweet):
     #                 original_tweet = OriginalTweet()
-    #                 original_tweet.from_json_raw_format(tweet)
+    #                 original_tweet.from_raw_format(tweet)
     #                 all_data.append(original_tweet)
     #             if len(all_data) > 3:
     #                 break
@@ -155,31 +158,58 @@ def main(args):
     #                 json_object = json.dumps(o, cls=OriginalTweetEncoder)
     #                 f_out.write(json_object)
 
+    # # test...
+    # group_file_list = ["sns_ids_geo_2020-02-01.jsonl"]
+    # for file_name in group_file_list:
+    #     full_path_new_tweets = args.data_root + "\\2_selected_and_sorted\\" + file_name
+    #     with open(full_path_new_tweets, "r", encoding="utf-8") as f_in:
+    #         print(f"processing {full_path_in}")
+
+    #         tweets = ijson.items(f_in, "", multiple_values=True)
+
+    #         tweet = next(tweets)
+    #         print(tweet)
+    #         tweet = next(tweets)
+    #         print(tweet)
+    #         tweet = next(tweets)
+    #         print(tweet)
+    #         tweet = next(tweets)
+    #         print(tweet)
+
+    # with open(full_path_group_out, "w", encoding="utf-8") as group_out_file: 
+                    
     # second pass - merging
-    file_list = ["sns_ids_geo_2020-02-01.jsonl"]
-    for file_name in file_list:
-        full_path_sx = args.data_root + "\\2_selected_and_sorted\\" + file_name
-        full_path_input = args.data_root + "\\3_grouped\\" + "group_1.jsonl"
-        full_path_output = args.data_root + "\\3_grouped\\" + "group_1b.jsonl"
+    group_file_list = ["sns_ids_geo_2020-02-01.jsonl"]
+    for file_name in group_file_list:
+        full_path_fresh_tweets = args.data_root + "\\2_selected_and_sorted\\" + file_name
+        full_path_group_in = args.data_root + "\\3_grouped\\" + "group_1.jsonl"
+        full_path_group_out = args.data_root + "\\3_grouped\\" + "group_1b.jsonl"
 
-        with open(full_path_sx, "r", encoding="utf-8") as sx:
-            in_hand = read(sx)
-            with open(full_path_input, "r", encoding="utf-8") as s1:
-                with open(full_path_output, "w", encoding="utf-8") as d1: 
+        with open(full_path_fresh_tweets, "r", encoding="utf-8") as fresh_tweets_file:
+            fresh_tweets = ijson.items(fresh_tweets_file, "", multiple_values=True)
+            fresh_tweet = next(fresh_tweets)
 
-                    preexisting = read(s1)
+            with open(full_path_group_in, "r", encoding="utf-8") as group_in_file:  
+                group_tweets = ijson.items(group_in_file, "", multiple_values=True)
+                group_tweet = next(group_tweets)
 
-                    if preexisting < in_hand:
-                        write(d1, preexisting)
-                        preexisting = read(s1)
+                if group_tweet < fresh_tweet:
+                    # write(group_out_file, group_tweet)
+                    # group_tweet = read(group_in_file)
+                    print("get next group tweet")
+                    group_tweet = next(group_tweets)
 
-                    elif preexisting == in_hand:
-                        in_hand.merge(preexisting)
-                        preexisting = read(s1)
+                elif group_tweet == fresh_tweet:
+                    # new_tweet.merge(group_tweet)
+                    # group_tweet = read(group_in_file)
+                    print("merge and get next group tweet")
+                    group_tweet = next(group_tweets)
 
-                    else:
-                        write(d1, in_hand)
-                        in_hand = read(sx)
+                else:
+                    # write(group_out_file, fresh_tweet)
+                    # fresh_tweet = read(fresh_tweets_file)
+                    print("get next fresh tweet")
+                    fresh_tweet = next(fresh_tweets)
 
         # while there are still in_hand that are < threshold for next group...
         # read/write in_hand to d1
