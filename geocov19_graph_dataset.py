@@ -17,7 +17,8 @@ class GeoCoV19GraphDataset(Dataset):
     @property
     def raw_file_names(self):
         # return ['ids_geo_2020-02-01.jsonl']
-        return ['ids_geo_2020-02-01.jsonl', 'ids_geo_2020-02-02.jsonl']
+        # return ['ids_geo_2020-02-01.jsonl', 'ids_geo_2020-02-02.jsonl']
+        return 'merged_all.jsonl'
 
     @property
     def processed_file_names(self):

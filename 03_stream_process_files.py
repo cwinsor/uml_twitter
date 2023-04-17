@@ -1,24 +1,6 @@
 
 '''
-Dynamic topic modeling of GeoCoV19 using self-supervised graph learning
 
-Step 2: training
-
-This file trains the graph-based model using self-supervised learning.
-
-Runtime parameters specify:
-* prediction type (node, edge, graph)
-* augmentation type (zona detail here)
-* loss function (zona detail here)
-
-Wandb is used for tracking.
-
-The model is saved as <ZONA detail here> which can be used for downstream fine tuning.
-
-Much code (that in /GraphSSL) follows and/or is copied from Maheshwari et al. with reference below.
-
-References:
-https://medium.com/stanford-cs224w/self-supervised-learning-for-graphs-963e03b9f809
 '''
 
 import datetime
