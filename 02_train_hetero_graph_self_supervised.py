@@ -19,6 +19,9 @@ Much code (that in /GraphSSL) follows and/or is copied from Maheshwari et al. wi
 
 References:
 https://medium.com/stanford-cs224w/self-supervised-learning-for-graphs-963e03b9f809
+https://pytorch-geometric.readthedocs.io/en/latest/tutorial/create_dataset.html
+https://pytorch-geometric.readthedocs.io/en/latest/tutorial/heterogeneous.html
+
 '''
 
 import datetime

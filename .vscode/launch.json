@@ -40,7 +40,7 @@
                 "--data_src", "D:\\dataset_covid_GeoCovGraph",
                 "--data_dst", "twitter_attempt_02",
                 "--dataset", "GeoCoV19",
-                //"--dataset", "proteins",
+                // "--dataset", "proteins",
                 "--model", "gcn",
                 "--loss", "infonce",
                 "--augment_list", "edge_perturbation",

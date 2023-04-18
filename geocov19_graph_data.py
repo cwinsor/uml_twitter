@@ -1,5 +1,38 @@
 '''
-GeoCoV19GraphDataset
+GeoCoV19GraphData Class
+
+Derived from torch_geometric.data Data
+https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Data.html#torch_geometric.data.Data
+
+In the context of GeoCoV19 a graph is the tweet and history of retweets.
+Tweet = node, retweets=nodes. Each retweet is associated with the original tweet by a vertex.
+
+------------------------------------------
+The following is background info on torch_geometric.Data:
+
+The torch_geometric Data class describes a homogeneous graph.
+An object of this class consists of nodes, edges.
+    x is the node feature matrix [num_nodes, num_node_features]
+    edge_index is the connectivity in COO format [2, num_edges]
+    y is the ground truth label
+Optional are:
+    edge_attr
+    pos (node position matrix)
+
+Above describes a homogeneous graph. For hetrogeneous support the to_hetrogenous method can be called
+on the homeogenous graph with the following parameters:
+to_heterogeneous(node_type, edge_type, node_type_names, edge_type_names)
+    node_type: a vector denoting node type
+    edge_type: a vector indicating edge type
+node_type_names and edge_type_names can be added to be more helpful.
+
+The infrastructure will ten 
+In our case:
+
+
+
+Derived from torch InMemoryDataset.
+https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Data.html#torch_geometric.data.Data
 
 A graph captures a tweet's retweet events.
 Nodes are the original tweet and each retweet.

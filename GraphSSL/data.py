@@ -71,12 +71,45 @@ def load_dataset(name, root_dir=None, expand_features=True):
     # torch_geometric.data.HeteroData
     if name == "GeoCoV19":
         dataset = GeoCoV19GraphDataset(root=root_dir)
-        num_classes = None
+
+        print(type(dataset))
+        print(len(dataset))
+        print(dataset[0])
+        print()
+        # expect:
+        # <class 'torch_geometric.datasets.tu_dataset.TUDataset'>
+        # 1113
+        # Data(edge_index=[2, 162], x=[42, 4], y=[1])
+
+        # observe:
+
+        num_classes = dataset.num_classes
+        dataset = [graph for graph in dataset]
+
+        print(feat_dim)
+        print(num_classes)
+        print(type(dataset))
+        print(len(dataset))
+        print(dataset[0])
+        print()
+        # expect:
+        # 30
+        # 2
+        # <class 'list'>
+        # 1113
+        # Data(edge_index=[2, 162], x=[42, 30], y=[1])
+
+        # observe:
+
 
     # torch_geometric.datasets.TUDataset
     else:
         if name == "proteins":
             dataset = TUDataset(root="/tmp/TUDataset/PROTEINS", name="PROTEINS", use_node_attr=True)
+            print(type(dataset))
+            print(len(dataset))
+            print(dataset[0])
+            print()
         elif name == "enzymes":
             dataset = TUDataset(root="/tmp/TUDataset/ENZYMES", name="ENZYMES", use_node_attr=True)
         elif name == "collab":
@@ -104,6 +137,13 @@ def load_dataset(name, root_dir=None, expand_features=True):
         else:
             dataset = [graph for graph in dataset]
     feat_dim = dataset[0].num_node_features
+
+    print(feat_dim)
+    print(num_classes)
+    print(type(dataset))
+    print(len(dataset))
+    print(dataset[0])
+    print()
 
     return dataset, feat_dim, num_classes
 
