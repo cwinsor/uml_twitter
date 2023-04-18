@@ -8,6 +8,7 @@
 
 
 
+
         {
             "name": "Python: Current File",
             "type": "python",
@@ -72,9 +73,20 @@
             "args": [
                 "--perform_parse",
                 "--raw_folder", "D:\\dataset_covid_GeoCovGraph\\1_raw",
-                "--raw_file_in", "ids_geo_2020-02-01.jsonl",
-                "--raw_file_in", "ids_geo_2020-02-02.jsonl",
-                //"--parsed_folder", "D:\\dataset_covid_GeoCovGraph\\2_parsed",
+                "--parsed_folder", "D:\\dataset_covid_GeoCovGraph\\2_parsed",
+
+                //"--raw_file_in", "ids_geo_2020-02-01.jsonl",
+                //"--raw_file_in", "ids_geo_2020-02-02.jsonl",
+                //"--raw_file_in", "ids_geo_2020-02-03.jsonl",
+                //"--raw_file_in", "ids_geo_2020-02-04.jsonl",
+                //"--raw_file_in", "ids_geo_2020-02-05.jsonl",
+
+                //"--raw_file_in", "ids_geo_2020-03-01.jsonl",
+                //"--raw_file_in", "ids_geo_2020-03-02.jsonl",
+                //"--raw_file_in", "ids_geo_2020-03-03.jsonl",
+                //"--raw_file_in", "ids_geo_2020-03-04.jsonl",
+                //"--raw_file_in", "ids_geo_2020-03-05.jsonl",
+
             ]
         },
 
@@ -88,15 +100,25 @@
             "args": [
                 "--perform_merge",
                 "--parsed_folder", "D:\\dataset_covid_GeoCovGraph\\2_parsed",
-                //"--parsed_file_in", "parsed_ids_geo_2020-02-01.jsonl",
-                "--parsed_file_in", "parsed_ids_geo_2020-02-01.jsonl",
                 "--merged_folder", "D:\\dataset_covid_GeoCovGraph\\raw",
                 "--merged_file_in_out", "merged_all.jsonl",
+
+                //"--parsed_file_in", "parsed_ids_geo_2020-02-01.jsonl",
+                //"--parsed_file_in", "parsed_ids_geo_2020-02-02.jsonl",
+                //"--parsed_file_in", "parsed_ids_geo_2020-02-03.jsonl",
+                //"--parsed_file_in", "parsed_ids_geo_2020-02-04.jsonl",
+                //"--parsed_file_in", "parsed_ids_geo_2020-02-05.jsonl",
+
+                //"--parsed_file_in", "parsed_ids_geo_2020-03-01.jsonl",
+                //"--parsed_file_in", "parsed_ids_geo_2020-03-02.jsonl",
+                //"--parsed_file_in", "parsed_ids_geo_2020-03-03.jsonl",
+                //"--parsed_file_in", "parsed_ids_geo_2020-03-04.jsonl",
+                //"--parsed_file_in", "parsed_ids_geo_2020-03-05.jsonl",
             ]
         },
 
         {
-            "name": "04_experiment_merge",
+            "name": "04_experiment_analyze",
             "type": "python",
             "request": "launch",
             "program": "04_experiment.py",
@@ -104,7 +126,7 @@
             "justMyCode": true,
             "args": [
                 "--perform_analyze",
-                "--analyze_target", "D:\\dataset_covid_GeoCovGraph\\3_merged\\merged_all.json",
+                "--analyze_target", "D:\\dataset_covid_GeoCovGraph\\raw\\merged_all.jsonl",
             ]
         },
     ]

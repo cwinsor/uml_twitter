@@ -251,12 +251,11 @@ def main(args):
 
     if args.perform_analyze:
 
-        analysis_target_file_handle = open(args.analyze_target, "r", encoding="utf-8")     
-        f = open(analysis_target_file_handle, "r", encoding="utf-8")     
+        f = open(args.analyze_target, "r", encoding="utf-8")
         data = ijson.items(f, "", multiple_values=True)
 
         # for i in data:
-        #     if i['number_retweets'] == 10:
+        #     if i['number_retweets'] >= 150:
         #         # if i['number_retweets'] == 2476:
         #         for k, v in i.items():
         #             print(f"{k} {v}")
@@ -265,23 +264,20 @@ def main(args):
         num_retweets_list = [original_tweet["number_retweets"] for original_tweet in data]
 
         num_retweets_list.sort(reverse=False)
-        print(len(num_retweets_list))
+        print(f"total original tweets = {len(num_retweets_list)}")
         # print(num_retweets_list[0:10])
-        print(num_retweets_list[-10:-1])
-
+        # print(num_retweets_list[-10:-1])
 
         nphist = np.histogram(num_retweets_list)
-        for x in nphist:
-            print(x)
-        # print(nphist)
+        print(nphist)
+        # assert False, "hold up"
 
-        plt.hist(num_retweets_list, 30)
+        plt.hist(x=num_retweets_list, bins=30, label="foo")
         plt.show()
-        plt.hist(num_retweets_list, 30, range=[0.5, 30.5])
+        plt.hist(x=num_retweets_list, bins=30, range=[0.5, 30.5])
         plt.show()
-        plt.hist(num_retweets_list, 30, range=[100, 7000])
+        plt.hist(x=num_retweets_list, bins=30, range=[100, 7000])
         plt.show()
-
 
         f.close()
 

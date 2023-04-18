@@ -3,6 +3,7 @@ GeoCoV19GraphData Class
 
 Derived from torch_geometric.data Data
 https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Data.html#torch_geometric.data.Data
+https://pytorch-geometric.readthedocs.io/en/latest/get_started/introduction.html#data-handling-of-graphs
 
 In the context of GeoCoV19 a graph is the tweet and history of retweets.
 Tweet = node, retweets=nodes. Each retweet is associated with the original tweet by a vertex.
@@ -19,31 +20,13 @@ Optional are:
     edge_attr
     pos (node position matrix)
 
-Above describes a homogeneous graph. For hetrogeneous support the to_hetrogenous method can be called
-on the homeogenous graph with the following parameters:
+Above describes a homogeneous graph. 
+The to_hetrogenous method can be used to convert the graph to a hetrogeneous format.
+The following parameters are used to perform the conversion:
 to_heterogeneous(node_type, edge_type, node_type_names, edge_type_names)
     node_type: a vector denoting node type
     edge_type: a vector indicating edge type
 node_type_names and edge_type_names can be added to be more helpful.
-
-The infrastructure will ten 
-In our case:
-
-
-
-Derived from torch InMemoryDataset.
-https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Data.html#torch_geometric.data.Data
-
-A graph captures a tweet's retweet events.
-Nodes are the original tweet and each retweet.
-An edge associates the retweet with the original tweet.
-
-Thus there are millions of graphs and each is relatively small (the total number of retweets + 1)
-
-The goal is to classify a tweet (entire graph) into one of three classes:
-* "0" = little or no retweet activity
-* "1" = modest retweet activity
-* "2" = significant retweet activity
 
 '''
 
@@ -51,17 +34,19 @@ import os
 import ijson
 
 import torch
-from torch_geometric.data import Dataset, InMemoryDataset, HeteroData
+from torch_geometric.data import Data
 
 
-class GeoCoV19GraphDataset(InMemoryDataset):
-    def __init__(self, root, transform=None, pre_transform=None, pre_filter=None):
-        super().__init__(root, transform, pre_transform, pre_filter)
-        self.root = root
+class GeoCoV19GraphData(Data):
+    def __init__(self,
+                 x,  # nodes
+                 edge_index,  # edges
+                 y,  # graph class in [0 (few retweets), 1 (modest retweets), 2 (many retweets)]
+                 )
 
-    # @property
-    # def num_classes(self):
-    #     return 3
+
+
+        super().__init__(x=x, edge_index=edge_index, y=y)
 
     @property
     def raw_file_names(self):

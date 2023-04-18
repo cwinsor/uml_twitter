@@ -1,6 +1,9 @@
 '''
 GeoCoV19GraphDataset
 
+Derived from torch InMemoryDataset.
+https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Data.html#torch_geometric.data.Data
+
 A graph captures a tweet's retweet events.
 Nodes are the original tweet and each retweet.
 An edge associates the retweet with the original tweet.
