@@ -57,8 +57,9 @@ class GeoCoV19GraphDataset(InMemoryDataset):
 
         for graph_data_from_file in graphs_from_file:
 
-            if (graph_data_from_file["number_retweets"] > 20) and \
-               (graph_data_from_file["number_retweets"] < 30):  # ZONA delete me
+            # if (graph_data_from_file["number_retweets"] > 20) and \
+            #    (graph_data_from_file["number_retweets"] < 30):  # ZONA delete me
+            if True:
 
                 g19_hetero_data = G19HeteroData()
 
