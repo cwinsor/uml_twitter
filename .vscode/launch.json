@@ -64,10 +64,10 @@
         },
 
         {
-            "name": "04_experiment_parse",
+            "name": "10_preprocess_parse",
             "type": "python",
             "request": "launch",
-            "program": "04_experiment.py",
+            "program": "10_preprocess.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
@@ -91,10 +91,10 @@
         },
 
         {
-            "name": "04_experiment_merge",
+            "name": "10_preprocess_merge",
             "type": "python",
             "request": "launch",
-            "program": "04_experiment.py",
+            "program": "10_preprocess.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
@@ -118,10 +118,10 @@
         },
 
         {
-            "name": "04_experiment_analyze",
+            "name": "10_preprocess_analyze",
             "type": "python",
             "request": "launch",
-            "program": "04_experiment.py",
+            "program": "10_preprocess.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
@@ -129,7 +129,6 @@
                 "--analyze_target", "D:\\dataset_covid_GeoCovGraph\\raw\\merged_all.jsonl",
             ]
         },
-
         
         {
             "name": "g19_hetero_data_test",
@@ -139,6 +138,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
+                // "--run_test_1",
                 "--run_test_2",
                 "--data_file", "D:\\dataset_covid_GeoCovGraph\\raw\\merged_all.jsonl",
             ]
@@ -156,6 +156,28 @@
                 "--data_root", "D:\\dataset_covid_GeoCovGraph",
             ]
         },
+
+        {
+            "name": "11_train_hetero_graph_self_supervised",
+            "type": "python",
+            "request": "launch",
+            "program": "11_train_hetero_graph_self_supervised.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--data_src", "D:\\dataset_covid_GeoCovGraph",
+                "--data_dst", "twitter_attempt_02",
+                "--dataset", "GeoCoV19",
+                // "--dataset", "proteins",
+                "--model", "gcn",
+                "--loss", "infonce",
+                // "--augment_list", "edge_perturbation",
+                "--augment_list", "node_dropping",
+                "--batch_size", "256",
+                "--epochs", "2",
+            ]
+        },
+
 
     ]
 }

@@ -16,8 +16,14 @@ GeoCoV19Model
 
 
 class GeoCoV19Model(torch.nn.Module):
-    def __init__(self, feat_dim, hidden_dim, n_layers,
-                 pool, bn, node_level, graph_level):
+    def __init__(self,
+                 feat_dim,
+                 hidden_dim,
+                 n_layers,
+                 pool="sum",
+                 bn=False,
+                 xavier=True):
+
         super(GeoCoV19Model, self).__init__()
 
 
