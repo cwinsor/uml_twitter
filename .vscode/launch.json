@@ -129,5 +129,33 @@
                 "--analyze_target", "D:\\dataset_covid_GeoCovGraph\\raw\\merged_all.jsonl",
             ]
         },
+
+        
+        {
+            "name": "g19_hetero_data_test",
+            "type": "python",
+            "request": "launch",
+            "program": "g19_hetero_data.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--run_test_2",
+                "--data_file", "D:\\dataset_covid_GeoCovGraph\\raw\\merged_all.jsonl",
+            ]
+        },
+        
+        {
+            "name": "g19_hetero_dataset_test",
+            "type": "python",
+            "request": "launch",
+            "program": "g19_hetero_dataset.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--run_test_1",
+                "--data_root", "D:\\dataset_covid_GeoCovGraph",
+            ]
+        },
+
     ]
 }
