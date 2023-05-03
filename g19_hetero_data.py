@@ -10,6 +10,7 @@ https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.dat
 import random
 import argparse
 import ijson
+from json import JSONEncoder
 
 import torch
 from torch_geometric.data import HeteroData
@@ -19,6 +20,7 @@ from torch_geometric.data import HeteroData
 parser = argparse.ArgumentParser()
 parser.add_argument("--run_test_1", default=False, action="store_true")
 parser.add_argument("--run_test_2", default=False, action="store_true")
+parser.add_argument("--run_test_3", default=False, action="store_true")
 parser.add_argument("--data_file", type=str, required=False, default="_not_provided")
 
 
@@ -29,22 +31,20 @@ class G19HeteroData(HeteroData):
 
     def from_json_standard_format(self, ref, the_data):
 
+        # original tweet node...
+        # ZONA - apply language model to transform tweet text to embedding (huggingface language model)
         original_tweet_id = the_data["original_tweet_id"]
         retweet_count = the_data["number_retweets"]
-        # original_tweet_text = the_data["original_tweet_text"]  ## ZONA needs to be an INT or FLOAT, not string
         original_tweet_text_features = [random.randint(0, 9) for _ in range(3)]
+        original_tweet_all_features = [original_tweet_id, retweet_count] + original_tweet_text_features
+        self["original_tweet"].x = torch.tensor(original_tweet_all_features)
 
+        # retweet nodes...
+        # ZONA - add retweet features here - randint is placeholder
+        # ZONA - convert date to an ordinal representation
         retweet_user_ids = the_data["retweet_user_ids"]
-        # retweet_dates = the_data["retweet_dates"]  ## ZONA needs to be an INT or FLOAT, not datetime
-        retweet_date_feature = [random.randint(0, 9) for _ in range(len(retweet_user_ids))]
-
-        # node: original tweet
-        self["original_tweet"].x = torch.tensor([
-            [original_tweet_id, retweet_count] + original_tweet_text_features
-            ])
-
-        # nodes: retweets
-        self['retweet'].x = torch.tensor([[id, date] for id, date in zip(retweet_user_ids, retweet_date_feature)])
+        retweet_all_feature = [[rtid] + random.sample(range(0, 9), 4) for rtid in retweet_user_ids]
+        self['retweet'].x = torch.tensor(retweet_all_feature)
 
         # edges...
         # each points to the original tweet
@@ -58,6 +58,11 @@ class G19HeteroData(HeteroData):
         # print(self['retweet', 'of', 'original_tweet'].edge_index)
         # print("here")
 
+    def to_json_dict(self):
+        as_json = JSONEncoder(self)
+        as_dict = as_json.__dict__
+        return as_dict
+    
     def print_summary(self):
         print(f"data {self}")
         print(f"metadata() {self.metadata()}")
@@ -84,7 +89,7 @@ def test_2(args):
 
     for graph_data_from_file in graphs_from_file:
 
-        if graph_data_from_file["number_retweets"] == 10:  # ZONA - delete me
+        if graph_data_from_file["number_retweets"] >= 3:
             g19_hetero_data = G19HeteroData()
 
             g19_hetero_data.from_json_standard_format(ref=g19_hetero_data,
@@ -95,25 +100,44 @@ def test_2(args):
             assert False, "hold up"
 
 
-def test_1(args):
+def test_3(args):
 
-    data = G19HeteroData()
+    f = open(args.data_file, "r", encoding="utf-8")
+    graphs_from_file = ijson.items(f, "", multiple_values=True)
 
-    num_authors = 2
-    num_authors_features = 5
-    data['author'].x = torch.randn(num_authors, num_authors_features)
+    for graph_data_from_file in graphs_from_file:
 
-    num_papers = 3
-    num_paper_features = 4
-    data['paper'].x = torch.randn(num_papers, num_paper_features)
+        if graph_data_from_file["number_retweets"] >= 3:
+            g19_hetero_data = G19HeteroData()
 
-    edge_index_author_paper = torch.tensor([
-        [0, 0, 1, 0],
-        [1, 2, 3, 3]], dtype=torch.long)
-    print(edge_index_author_paper.shape)  # should be 2x4
-    data['author', 'writes', 'paper'].edge_index = edge_index_author_paper
+            g19_hetero_data.from_json_standard_format(ref=g19_hetero_data,
+                                                      the_data=graph_data_from_file)
 
-    data.print_summary()
+            as_dict = g19_hetero_data.to_dict()
+            print(f"as_dict:\n{as_dict}")
+
+            assert False, "hold up"
+
+
+# def test_1(args):
+
+#     data = G19HeteroData()
+
+#     num_authors = 2
+#     num_authors_features = 5
+#     data['author'].x = torch.randn(num_authors, num_authors_features)
+
+#     num_papers = 3
+#     num_paper_features = 4
+#     data['paper'].x = torch.randn(num_papers, num_paper_features)
+
+#     edge_index_author_paper = torch.tensor([
+#         [0, 0, 1, 0],
+#         [1, 2, 3, 3]], dtype=torch.long)
+#     print(edge_index_author_paper.shape)  # should be 2x4
+#     data['author', 'writes', 'paper'].edge_index = edge_index_author_paper
+
+#     data.print_summary()
 
 
 if __name__ == "__main__":
@@ -123,3 +147,6 @@ if __name__ == "__main__":
 
     if args.run_test_2:
         test_2(args)
+
+    if args.run_test_3:
+        test_3(args)

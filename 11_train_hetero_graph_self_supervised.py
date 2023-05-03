@@ -2,20 +2,7 @@
 '''
 Dynamic topic modeling of GeoCoV19 using self-supervised graph learning
 
-Step 2: training
-
 This file trains the graph-based model using self-supervised learning.
-
-Runtime parameters specify:
-* prediction type (node, edge, graph)
-* augmentation type (zona detail here)
-* loss function (zona detail here)
-
-Wandb is used for tracking.
-
-The model is saved as <ZONA detail here> which can be used for downstream fine tuning.
-
-Much code (that in /GraphSSL) follows and/or is copied from Maheshwari et al. with reference below.
 
 References:
 https://medium.com/stanford-cs224w/self-supervised-learning-for-graphs-963e03b9f809
@@ -31,14 +18,16 @@ import wandb
 from tqdm import trange
 
 import torch
-from torch.utils.data import DataLoader
+# from torch.utils.data import DataLoader
+from torch_geometric.loader import DataLoader, NeighborLoader, HGTLoader
 
 from g19_hetero_dataset import GeoCoV19GraphDataset
-from geocov19_model import GeoCoV19Model
+from g19_hetero_data import G19HeteroData
+from geocov19_model import GeoCoV19ModelTwoLayer
 
 # from GraphSSL.data import load_dataset, split_dataset, build_loader
 # from GraphSSL.model import Encoder
-# from GraphSSL.loss import infonce
+from loss import infonce, jensen_shannon
 
 # runtime arguments
 parser = argparse.ArgumentParser()
@@ -67,7 +56,7 @@ parser.add_argument("--dataset", dest="dataset", action="store", required=True, 
 parser.add_argument("--model", dest="model", action="store", default="gcn", type=str,
                     choices=["gcn", "gin", "resgcn", "gat", "graphsage", "sgc"],
                     help="he model architecture of the GNN Encoder")
-parser.add_argument("--feat_dim", dest="feat_dim", action="store", default=128, type=int,
+parser.add_argument("--feat_dim", dest="feat_dim", action="store", default=16, type=int,
                     help="dimension of node features in GNN")
 parser.add_argument("--layers", dest="layers", action="store", default=3, type=int,
                     help=" number of layers of GNN Encoder")
@@ -140,6 +129,7 @@ def main(args):
 
     # dataset
     full_dataset = GeoCoV19GraphDataset(root=args.data_src)
+    num_classes = 2  # should be full_dataset.num_classes... see https://github.com/pyg-team/pytorch_geometric/issues/1323
 
     train_size = int(0.7 * len(full_dataset))
     val_size = int(0.2 * len(full_dataset))
@@ -147,20 +137,21 @@ def main(args):
     train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(full_dataset, [train_size, val_size, test_size])
 
     # dataloaders
-    train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size,
-                              shuffle=True, num_workers=args.num_workers_dataloader)
-    val_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size,
-                            shuffle=True, num_workers=args.num_workers_dataloader)
-    test_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size,
-                             shuffle=True, num_workers=args.num_workers_dataloader)
+    data_for_init = full_dataset[0]
+    train_loader = NeighborLoader(data=data_for_init,
+                                  num_neighbors=1,
+                                  input_nodes='original_tweet')
+    # train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size,
+    #                           shuffle=True, num_workers=args.num_workers_dataloader)
+    # val_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size,
+    #                         shuffle=True, num_workers=args.num_workers_dataloader)
+    # test_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size,
+    #                          shuffle=True, num_workers=args.num_workers_dataloader)
 
     # model
-    model = GeoCoV19Model(feat_dim=args.feat_dim,
-                          hidden_dim=args.hidden_dim,
-                          n_layers=args.layers,
-                          pool="sum",
-                          bn=False,
-                          xavier=True)
+    model = GeoCoV19ModelTwoLayer(hidden_channels=args.feat_dim,
+                                  out_channels=num_classes,
+                                  num_layers=args.layers)
     model = model.to(args.device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
@@ -192,7 +183,6 @@ def main(args):
             )
 
     logger.info(f"Best validation loss at epoch {epoch}: val {best_val_loss:.3f} train {best_train_loss:.3f}")
-    model.eval()
     test_loss = run_batch(args, best_epoch, "test", test_loader, model, optimizer)
     logger.info(f"Test loss using model from epoch {best_epoch}: {test_loss:.3f}")
     wandb.log(

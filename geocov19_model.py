@@ -8,24 +8,36 @@ from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.inits import glorot, zeros
 from torch.nn import Parameter, Sequential, Linear, BatchNorm1d
 from torch_geometric.utils import remove_self_loops, add_self_loops
-from torch_geometric.nn import GCNConv, GINConv, GATConv, SAGEConv, SGConv, global_add_pool, global_mean_pool
+from torch_geometric.nn import GCNConv, GINConv, GATConv, SAGEConv, SGConv, global_add_pool, global_mean_pool, HeteroConv
 
 '''
 GeoCoV19Model
 '''
 
 
-class GeoCoV19Model(torch.nn.Module):
-    def __init__(self,
-                 feat_dim,
-                 hidden_dim,
-                 n_layers,
-                 pool="sum",
-                 bn=False,
-                 xavier=True):
+class GeoCoV19ModelTwoLayer(torch.nn.Module):
+    def __init__(self, hidden_channels, out_channels, num_layers):
+        super().__init__()
 
-        super(GeoCoV19Model, self).__init__()
+        self.convs = torch.nn.ModuleList()
+        for _ in range(num_layers):
+            conv = HeteroConv({
+                ('retweet', 'of', 'original_tweet'): GCNConv(-1, hidden_channels, add_self_loops=False),
+                # ('retweet', 'of', 'original_tweet'): SAGEConv((-1, -1), hidden_channels),
+                # ('retweet', 'of', 'original_tweet'): GATConv((-1, -1), hidden_channels),
+            },
+            aggr='sum')
+            # aggr='mean')
+            self.convs.append(conv)
 
+        self.lin = Linear(hidden_channels, out_channels)
+
+    def forward(self, x_dict, edge_index_dict):
+        for conv in self.convs:
+            x_dict = conv(x_dict, edge_index_dict)
+            x_dict = {key: x.relu() for key, x in x_dict.items()}
+            y = self.lin(x_dict['author'])
+            return y
 
 
 class Encoder(torch.nn.Module):

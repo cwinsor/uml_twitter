@@ -33,6 +33,11 @@ class GeoCoV19GraphDataset(InMemoryDataset):
 
         self.data, self.slices = torch.load(self.processed_paths[0])
 
+    def __getitem__(self, idx):
+        data = self.get(idx)
+        return data
+        # y = [data.x_dict, data.edge_index_dict, data.edge_attr_dict]
+        # return y
 
     # @property
     # def raw_file_names(self):
@@ -47,7 +52,7 @@ class GeoCoV19GraphDataset(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-        return 'merged_all.jsonl'
+        return 'merged_all_out.jsonl'
 
     def process(self):
         # Read data into huge `Data` list.

@@ -9,6 +9,7 @@
 
 
 
+
         {
             "name": "Python: Current File",
             "type": "python",
@@ -130,6 +131,42 @@
             ]
         },
         
+
+        {
+            "name": "10b_preprocess_parse_homogeneous",
+            "type": "python",
+            "request": "launch",
+            "program": "10_preprocess.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--perform_parse",
+                "--raw_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\1_raw",
+                "--parsed_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\2_parsed",
+
+                "--raw_file_in", "ids_geo_2020-02-01.jsonl",
+            ]
+        },
+
+        {
+            "name": "10b_preprocess_merge_homogeneous",
+            "type": "python",
+            "request": "launch",
+            "program": "10_preprocess.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--perform_merge",
+                "--parsed_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\2_parsed",
+                "--merged_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\raw",
+                "--merged_file_in_out", "merged_all.jsonl",
+
+                "--parsed_file_in", "parsed_ids_geo_2020-02-01.jsonl",
+            ]
+        },
+
+
+
         {
             "name": "g19_hetero_data_test",
             "type": "python",
@@ -138,9 +175,9 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                // "--run_test_1",
                 "--run_test_2",
-                "--data_file", "D:\\dataset_covid_GeoCovGraph\\raw\\merged_all.jsonl",
+                // "--data_file", "D:\\dataset_covid_GeoCovGraph\\raw\\merged_all.jsonl",
+                "--data_file", "D:\\dataset_covid_GeoCovGrHomogeneous\\raw\\merged_all.jsonl",
             ]
         },
         
@@ -154,6 +191,7 @@
             "args": [
                 "--run_test_1",
                 "--data_root", "D:\\dataset_covid_GeoCovGraph",
+                // "--data_root", "D:\\dataset_covid_GeoCovGrHomogeneous",
             ]
         },
 
@@ -163,9 +201,10 @@
             "request": "launch",
             "program": "11_train_hetero_graph_self_supervised.py",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "justMyCode": false,
             "args": [
-                "--data_src", "D:\\dataset_covid_GeoCovGraph",
+                // "--data_src", "D:\\dataset_covid_GeoCovGraph",
+                "--data_src", "D:\\dataset_covid_GeoCovGrHomogeneous",
                 "--data_dst", "twitter_attempt_02",
                 "--dataset", "GeoCoV19",
                 // "--dataset", "proteins",
@@ -174,7 +213,7 @@
                 // "--augment_list", "edge_perturbation",
                 "--augment_list", "node_dropping",
                 "--batch_size", "256",
-                "--epochs", "2",
+                "--epochs", "3",
             ]
         },
 

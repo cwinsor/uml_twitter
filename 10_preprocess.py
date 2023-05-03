@@ -69,12 +69,12 @@ parser.add_argument("--analyze_target",
 
 
 # subclass JSONEncoder
-class OriginalTweetEncoder(JSONEncoder):
+class TweetEncoder(JSONEncoder):
     def default(self, o):
         return o.__dict__
 
 
-class OriginalTweet():
+class IncomingTweet():
     def __init__(self):
         self.original_tweet_id = math.inf
         self.original_tweet_text = "--NONE--"
@@ -130,7 +130,7 @@ class OriginalTweet():
 
 
 def get_next(ijson_stream):
-    tweet_obj = OriginalTweet()
+    tweet_obj = IncomingTweet()
     try:
         tweet_dict = next(ijson_stream)
         tweet_obj.from_json_standard_format(tweet_dict)
@@ -170,17 +170,17 @@ def main(args):
 
             all_data = []
             for tweet in tweets:
-                if OriginalTweet.is_retweet(tweet):
-                    original_tweet = OriginalTweet()
-                    original_tweet.from_raw_format(tweet)
-                    all_data.append(original_tweet)
+                if IncomingTweet.is_retweet(tweet):
+                    incoming_tweet = IncomingTweet()
+                    incoming_tweet.from_raw_format(tweet)
+                    all_data.append(incoming_tweet)
                 # if len(all_data) > 3:
                 #     break
 
             all_data_sorted = sorted(all_data)
             with open(full_path_out, "w", encoding="utf-8") as f_out:
                 for o in all_data_sorted:
-                    json_object = json.dumps(o, cls=OriginalTweetEncoder)
+                    json_object = json.dumps(o, cls=TweetEncoder)
                     f_out.write(json_object)
 
     # second pass - merging
@@ -220,7 +220,7 @@ def main(args):
 
             if merge_src_tweet < fresh_tweet:
                 # print("write from group, get next group")
-                json_object = json.dumps(merge_src_tweet, cls=OriginalTweetEncoder)
+                json_object = json.dumps(merge_src_tweet, cls=TweetEncoder)
                 merge_dst_file_handle.write(json_object)
                 merge_src_tweet = get_next(merge_src_tweets)
 
@@ -241,7 +241,7 @@ def main(args):
                     fresh_tweet.merge(next_fresh_tweet)
                 else:
                     # print("write from fresh, get next fresh")
-                    json_object = json.dumps(fresh_tweet, cls=OriginalTweetEncoder)
+                    json_object = json.dumps(fresh_tweet, cls=TweetEncoder)
                     merge_dst_file_handle.write(json_object)
                     fresh_tweet = get_next(fresh_tweets)
 
