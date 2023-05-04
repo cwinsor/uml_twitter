@@ -52,12 +52,12 @@ class GeoCoV19GraphDataset(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-        return 'merged_all_out.jsonl'
+        return 'filtered_all_out.jsonl'
 
     def process(self):
         # Read data into huge `Data` list.
         data_list = []
-        f = open(self.root + "\\raw\\merged_all.jsonl", "r", encoding="utf-8")
+        f = open(self.root + "/raw/filtered_all.jsonl", "r", encoding="utf-8")
         graphs_from_file = ijson.items(f, "", multiple_values=True)
 
         for graph_data_from_file in graphs_from_file:

@@ -66,6 +66,15 @@ parser.add_argument("--analyze_target",
                     type=str, required=False,
                     default="_not_provided",
                     help="analysis target - full path of file to be analyzed")
+# filter
+parser.add_argument("--perform_filter",
+                    default=False, action="store_true",
+                    help="filter_merged_tweets")
+
+parser.add_argument("--filtered_folder_in", type=str, required=False)
+parser.add_argument("--filtered_file_in", type=str, required=False)
+parser.add_argument("--filtered_folder_out", type=str, required=False)
+parser.add_argument("--filtered_file_out", type=str, required=False)
 
 
 # subclass JSONEncoder
@@ -160,8 +169,8 @@ def main(args):
         # this step is done in-memory, specifically the sort, and can be done so because the .ijson file is limited to
         # one day worth of tweets
 
-        full_path_in = args.raw_folder + "\\" + args.raw_file_in
-        full_path_out = args.parsed_folder + "\\parsed_" + args.raw_file_in
+        full_path_in = args.raw_folder + args.raw_file_in
+        full_path_out = args.parsed_folder + "parsed_" + args.raw_file_in
 
         with open(full_path_in, "r", encoding="utf-8") as f_in:
 
@@ -193,26 +202,26 @@ def main(args):
     # this step is performed via streaming
 
     if args.perform_merge:
-        fresh_tweets_file = args.parsed_folder + "\\" + args.parsed_file_in
+        fresh_tweets_file = args.parsed_folder + args.parsed_file_in
         fresh_tweets_file_handle = open(fresh_tweets_file, "r", encoding="utf-8")
         fresh_tweets = ijson.items(fresh_tweets_file_handle, "", multiple_values=True)
         fresh_tweet = get_next(fresh_tweets)
 
         # move aside the current merge file adding suffix <datetime>, and open as read-source
-        merge_dst_filename = args.merged_folder + "\\" + args.merged_file_in_out
-        merge_src_filename = f"{merge_dst_filename}.{datetime.now().strftime('%m%d_%H%M%S')}"
-        if not os.path.exists(merge_dst_filename):
+        dst_filename = args.merged_folder + args.merged_file_in_out
+        src_filename = f"{dst_filename}.{datetime.now().strftime('%m%d_%H%M%S')}"
+        if not os.path.exists(dst_filename):
             print(f"creating new merge file")
-            open(merge_src_filename, 'x').close()
+            open(src_filename, 'x').close()
         else:
-            print(f"moving prior merge file {merge_dst_filename} to {merge_src_filename}")
-            os.rename(merge_dst_filename, merge_src_filename)
+            print(f"moving prior merge file {dst_filename} to {src_filename}")
+            os.rename(dst_filename, src_filename)
 
-        merge_src_file_handle = open(merge_src_filename, "r", encoding="utf-8")
+        merge_src_file_handle = open(src_filename, "r", encoding="utf-8")
         merge_src_tweets = ijson.items(merge_src_file_handle, "", multiple_values=True)
         merge_src_tweet = get_next(merge_src_tweets)
 
-        merge_dst_file_handle = open(merge_dst_filename, "w", encoding="utf-8")
+        f_out = open(dst_filename, "w", encoding="utf-8")
 
         while True:
 
@@ -221,7 +230,7 @@ def main(args):
             if merge_src_tweet < fresh_tweet:
                 # print("write from group, get next group")
                 json_object = json.dumps(merge_src_tweet, cls=TweetEncoder)
-                merge_dst_file_handle.write(json_object)
+                f_out.write(json_object)
                 merge_src_tweet = get_next(merge_src_tweets)
 
             elif merge_src_tweet == fresh_tweet:
@@ -242,12 +251,12 @@ def main(args):
                 else:
                     # print("write from fresh, get next fresh")
                     json_object = json.dumps(fresh_tweet, cls=TweetEncoder)
-                    merge_dst_file_handle.write(json_object)
+                    f_out.write(json_object)
                     fresh_tweet = get_next(fresh_tweets)
 
         fresh_tweets_file_handle.close()
         merge_src_file_handle.close()
-        merge_dst_file_handle.close()
+        f_out.close()
 
     if args.perform_analyze:
 
@@ -280,6 +289,26 @@ def main(args):
         plt.show()
 
         f.close()
+
+    if args.perform_filter:
+        # filter the results for example only tweets having between a certain number of retweets
+        src_filename = args.filtered_folder_in + args.filtered_file_in
+        dst_filename = args.filtered_folder_out + args.filtered_file_out
+
+        f_out = open(dst_filename, "w", encoding="utf-8")
+
+        with open(src_filename, "r", encoding="utf-8") as f_in:
+
+            print(f"processing {src_filename}")
+            tweets = ijson.items(f_in, "", multiple_values=True)
+
+            all_data = []
+            for tweet in tweets:
+                if tweet['number_retweets'] >= 8 and tweet['number_retweets'] <= 8:
+
+                    json_object = json.dumps(tweet, cls=TweetEncoder)
+                    f_out.write(json_object)
+
 
     logger.info("done")
 

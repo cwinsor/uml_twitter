@@ -58,7 +58,7 @@ parser.add_argument("--model", dest="model", action="store", default="gcn", type
                     help="he model architecture of the GNN Encoder")
 parser.add_argument("--feat_dim", dest="feat_dim", action="store", default=16, type=int,
                     help="dimension of node features in GNN")
-parser.add_argument("--layers", dest="layers", action="store", default=3, type=int,
+parser.add_argument("--layers", dest="layers", action="store", default=1, type=int,
                     help=" number of layers of GNN Encoder")
 parser.add_argument("--loss", dest="loss", action="store", default="infonce", type=str,
                     choices=["infonce", "jensen_shannon"],
@@ -87,7 +87,8 @@ def run_batch(args, epoch, mode, dataloader, model, optimizer):
             data.to(args.device)
 
             # readout_anchor is the embedding of the original datapoint x on passing through the model
-            readout_anchor = model((data.x_anchor, data.edge_index_anchor, data.x_anchor_batch))
+            # readout_anchor = model((data.x_anchor, data.edge_index_anchor, data.x_anchor_batch))
+            out = model(data.x_dict, data.edge_index_dict)
 
             # readout_positive is the embedding of the positively augmented x on passing through the model
             readout_positive = model((data.x_pos, data.edge_index_pos, data.x_pos_batch))
@@ -139,7 +140,7 @@ def main(args):
     # dataloaders
     data_for_init = full_dataset[0]
     train_loader = NeighborLoader(data=data_for_init,
-                                  num_neighbors=1,
+                                  num_neighbors=[-1],
                                   input_nodes='original_tweet')
     # train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size,
     #                           shuffle=True, num_workers=args.num_workers_dataloader)
