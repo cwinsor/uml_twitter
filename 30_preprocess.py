@@ -21,23 +21,12 @@ parser.add_argument("--daily_raw_folder", type=str, required=False)
 parser.add_argument("--daily_parsed_folder", type=str, required=False)
 parser.add_argument("--daily_raw_file_in", type=str, required=False)
 
-parser.add_argument("--merged_folder", 
-                    type=str, required=False,
-                    default="D:\\dataset_covid_GeoCovGraph\\3_merged",
-                    help="path to the folder with the merged output")
-
 # merge
-parser.add_argument("--perform_merge",
-                    default=False, action="store_true",
-                    help="perform second pass preprocessing which is: merge fresh tweets into prior tweet files")
-
-parser.add_argument("--parsed_file_in",
-                    type=str, required=False,
-                    help="the fresh/new retweets")
-
-parser.add_argument("--merged_file_in_out",
-                    type=str, required=False,
-                    help="mergeed file - read, merged with new tweets and re-written")
+parser.add_argument("--perform_merge", default=False, action="store_true")
+parser.add_argument("--merge_src_folder", type=str, required=False)
+parser.add_argument("--merge_dst_folder", type=str, required=False)
+# parser.add_argument("--merge_src_original_tweets", type=str, required=False, action='append')
+parser.add_argument("--merge_file_list", nargs='+', type=str, required=False)
 
 # analyze
 parser.add_argument("--perform_analyze",
@@ -125,61 +114,46 @@ def main(args):
     # this step is performed via streaming
 
     if args.perform_merge:
-        fresh_tweets_file = args.parsed_folder + args.parsed_file_in
-        fresh_tweets_file_handle = open(fresh_tweets_file, "r", encoding="utf-8")
-        fresh_tweets = ijson.items(fresh_tweets_file_handle, "", multiple_values=True)
-        fresh_tweet = get_next(fresh_tweets)
 
-        # move aside the current merge file adding suffix <datetime>, and open as read-source
-        dst_filename = args.merged_folder + args.merged_file_in_out
-        src_filename = f"{dst_filename}.{datetime.now().strftime('%m%d_%H%M%S')}"
-        if not os.path.exists(dst_filename):
-            print(f"creating new merge file")
-            open(src_filename, 'x').close()
-        else:
-            print(f"moving prior merge file {dst_filename} to {src_filename}")
-            os.rename(dst_filename, src_filename)
+        def do_original_tweets():
+            original_tweets_all = {}
+            for fname in args.merge_file_list:
+                filepath = args.merge_src_folder + "\\original_tweets_" + fname
+                print(f"processing {filepath}")
+                with open(filepath, "r", encoding="utf-8") as myfile:
+                    data = json.load(myfile)
+                    # print(f"len data {len(data)}")
+                    original_tweets_all.update(data)
+                    # print(f"len {len(original_tweets_all)}")
 
-        merge_src_file_handle = open(src_filename, "r", encoding="utf-8")
-        merge_src_tweets = ijson.items(merge_src_file_handle, "", multiple_values=True)
-        merge_src_tweet = get_next(merge_src_tweets)
+            filepath = args.merge_dst_folder + "\\merged_original_tweets.json"
+            with open(filepath, "w", encoding="utf-8") as f_out:
+                temp = json.dumps(original_tweets_all, indent=4)
+                f_out.write(temp)
+            f_out.close()
+        do_original_tweets()
 
-        f_out = open(dst_filename, "w", encoding="utf-8")
+        def do_retweets():
+            retweets_all = {}
+            for fname in args.merge_file_list:
+                filepath = args.merge_src_folder + "\\retweets_" + fname
+                print(f"processing {filepath}")
+                with open(filepath, "r", encoding="utf-8") as myfile:
+                    data = json.load(myfile)
+                    # print(f"len data {len(data)}")
+                    retweets_all.update(data)
+                    # print(f"len {len(retweets_all)}")
 
-        while True:
+            filepath = args.merge_dst_folder + "\\merged_retweets.json"
+            with open(filepath, "w", encoding="utf-8") as f_out:
+                temp = json.dumps(retweets_all, indent=4)
+                f_out.write(temp)
+            f_out.close()
+        do_retweets()
 
-            # print(f"group {prior_tweet.original_tweet_id} fresh {fresh_tweet.original_tweet_id}")
 
-            if merge_src_tweet < fresh_tweet:
-                # print("write from group, get next group")
-                json_object = json.dumps(merge_src_tweet, cls=TweetEncoder)
-                f_out.write(json_object)
-                merge_src_tweet = get_next(merge_src_tweets)
 
-            elif merge_src_tweet == fresh_tweet:
-                # if both group and fresh are .inf flagged then we are done
-                if merge_src_tweet.original_tweet_id == math.inf:
-                    break
-                # print("merge group into fresh, get next group")
-                fresh_tweet.merge(merge_src_tweet)
-                merge_src_tweet = get_next(merge_src_tweets)
 
-            else:  # fresh_tweet < prior tweet
-                # fresh tweet queue is ordered but not consolidated
-                next_fresh_tweet = get_next(fresh_tweets)
-                if next_fresh_tweet == fresh_tweet:
-                    # merge
-                    # print("merge fresh into fresh, get next fresh")
-                    fresh_tweet.merge(next_fresh_tweet)
-                else:
-                    # print("write from fresh, get next fresh")
-                    json_object = json.dumps(fresh_tweet, cls=TweetEncoder)
-                    f_out.write(json_object)
-                    fresh_tweet = get_next(fresh_tweets)
-
-        fresh_tweets_file_handle.close()
-        merge_src_file_handle.close()
-        f_out.close()
 
     if args.perform_analyze:
 
