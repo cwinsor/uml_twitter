@@ -294,6 +294,22 @@
         },
 
         {
+            "name": "g30_filter",
+            "type": "python",
+            "request": "launch",
+            "program": "g30_preprocess.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--perform_filter",
+                "--filter_src_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\raw",
+                "--filter_dst_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\raw",
+
+            ]
+        },
+
+
+        {
             "name": "g31_test_2",
             "type": "python",
             "request": "launch",

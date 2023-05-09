@@ -12,10 +12,13 @@ from torch_geometric.nn import GCNConv, GINConv, GATConv, SAGEConv, SGConv, glob
 
 '''
 GeoCoV19Model
+References:
+https://pytorch-geometric.readthedocs.io/en/latest/notes/heterogeneous.html#using-the-heterogeneous-convolution-wrapper
+https://towardsdatascience.com/hands-on-graph-neural-networks-with-pytorch-pytorch-geometric-359487e221a8
 '''
 
 
-class GeoCoV19ModelTwoLayer(torch.nn.Module):
+class GeoCoV19Model(torch.nn.Module):
     def __init__(self, hidden_channels, out_channels, num_layers):
         super().__init__()
 
@@ -23,10 +26,9 @@ class GeoCoV19ModelTwoLayer(torch.nn.Module):
         for _ in range(num_layers):
             conv = HeteroConv({
                 ('retweet', 'of', 'original_tweet'): GCNConv(-1, hidden_channels, add_self_loops=False),
-                # ('retweet', 'of', 'original_tweet'): SAGEConv((-1, -1), hidden_channels),
-                # ('retweet', 'of', 'original_tweet'): GATConv((-1, -1), hidden_channels),
-            },
-            aggr='sum')
+                # ('retweet', 'of', 'original_tweet'): SAGEConv((-1, -1), hidden_channels, node_dim=-1),
+                # ('retweet', 'of', 'original_tweet'): GATConv((-1, -1), hidden_channels, add_self_loops=False),
+            }, aggr='sum')
             # aggr='mean')
             self.convs.append(conv)
 
@@ -36,7 +38,7 @@ class GeoCoV19ModelTwoLayer(torch.nn.Module):
         for conv in self.convs:
             x_dict = conv(x_dict, edge_index_dict)
             x_dict = {key: x.relu() for key, x in x_dict.items()}
-            y = self.lin(x_dict['author'])
+            y = self.lin(x_dict['original_tweet'])
             return y
 
 

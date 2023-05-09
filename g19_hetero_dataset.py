@@ -2,10 +2,9 @@
 G19HeteroDataset
 
 References:
+https://towardsdatascience.com/hands-on-graph-neural-networks-with-pytorch-pytorch-geometric-359487e221a8
 https://pytorch-geometric.readthedocs.io/en/latest/tutorial/create_dataset.html
 https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Dataset.html#torch_geometric.data.Dataset
-
-
 '''
 
 import argparse
@@ -23,41 +22,32 @@ parser.add_argument("--data_root", type=str, required=False, default="_not_provi
 
 
 class GeoCoV19GraphDataset(InMemoryDataset):
+    ''' following example in: torch_geometric/datasets/dblp.py'''
     def __init__(self,
                  root,
                  transform=None,
                  pre_transform=None,
                  pre_filter=None):
-
         super().__init__(root, transform, pre_transform, pre_filter)
-
         self.data, self.slices = torch.load(self.processed_paths[0])
 
-    def __getitem__(self, idx):
-        data = self.get(idx)
-        return data
-        # y = [data.x_dict, data.edge_index_dict, data.edge_attr_dict]
-        # return y
-
-    # @property
-    # def raw_file_names(self):
-    #     return [self.raw_file_name]
-
-    # def download(self):
-    #     assert False, 'ERROR - download is not implemented'
-
-    # @property
-    # def processed_paths(self):
-    #     return self.my_processed_paths
+    @property
+    def raw_file_names(self):
+        return []
 
     @property
     def processed_file_names(self):
-        return 'filtered_all_out.jsonl'
+        return ["zona_fix_me_to_not_skip_process.txt"]
+   
+    def download(self):
+        pass
 
     def process(self):
         # Read data into huge `Data` list.
         data_list = []
-        f = open(self.root + "/raw/filtered_all.jsonl", "r", encoding="utf-8")
+        f = open(self.root + "/raw/merged_original_tweets.json", "r", encoding="utf-8")
+        oritinal_tweets = 
+        f = open(self.root + "/raw/merged_retweets.json", "r", encoding="utf-8")
         graphs_from_file = ijson.items(f, "", multiple_values=True)
 
         for graph_data_from_file in graphs_from_file:
@@ -72,7 +62,11 @@ class GeoCoV19GraphDataset(InMemoryDataset):
                                                           the_data=graph_data_from_file)
 
                 # g19_hetero_data.print_summary()
-                data_list.append(g19_hetero_data)
+                data['original_tweet'].x = g19_hetero_data.x.to(torch.long)
+                data['original_tweet'].y = g19_hetero_data.x.to(torch.long)
+                for retweet in g19_hetero_data['retweet_list']:
+                    data['retweet']
+
 
         if self.pre_filter is not None:
             data_list = [data for data in data_list if self.pre_filter(data)]

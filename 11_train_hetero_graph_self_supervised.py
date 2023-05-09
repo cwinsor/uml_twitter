@@ -23,7 +23,7 @@ from torch_geometric.loader import DataLoader, NeighborLoader, HGTLoader
 
 from g19_hetero_dataset import GeoCoV19GraphDataset
 from g19_hetero_data import G19HeteroData
-from geocov19_model import GeoCoV19ModelTwoLayer
+from geocov19_model import GeoCoV19Model
 
 # from GraphSSL.data import load_dataset, split_dataset, build_loader
 # from GraphSSL.model import Encoder
@@ -150,9 +150,13 @@ def main(args):
     #                          shuffle=True, num_workers=args.num_workers_dataloader)
 
     # model
-    model = GeoCoV19ModelTwoLayer(hidden_channels=args.feat_dim,
+    model = GeoCoV19Model(hidden_channels=args.feat_dim,
                                   out_channels=num_classes,
                                   num_layers=args.layers)
+    # lazy init - reference https://pytorch-geometric.readthedocs.io/en/latest/notes/heterogeneous.html#using-the-heterogeneous-convolution-wrapper
+    with torch.no_grad():  # Initialize lazy modules.
+        # out = model(data_for_init.x_dict, data_for_init.edge_index_dict)
+        out = model(data_for_init, data_for_init)
     model = model.to(args.device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)

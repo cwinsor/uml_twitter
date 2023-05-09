@@ -16,8 +16,12 @@ parser.add_argument("--daily_file_list", nargs='+', type=str, required=False)
 parser.add_argument("--perform_merge", default=False, action="store_true")
 parser.add_argument("--merge_src_folder", type=str, required=False)
 parser.add_argument("--merge_dst_folder", type=str, required=False)
-# parser.add_argument("--merge_src_original_tweets", type=str, required=False, action='append')
 parser.add_argument("--merge_file_list", nargs='+', type=str, required=False)
+
+# filter
+parser.add_argument("--perform_filter", default=False, action="store_true")
+parser.add_argument("--filter_src_folder", type=str, required=False)
+parser.add_argument("--filter_dst_folder", type=str, required=False)
 
 
 class RawTweet():
@@ -117,6 +121,57 @@ def main(args):
                 f_out.write(temp)
             f_out.close()
         do_retweets()
+
+    # filter
+    if args.perform_filter:
+
+        # make a map: original tweet to [list of retweets]
+        # filepath = args.filter_src_folder + "\\merged_original_tweets.json"
+        # original_tweets = {}
+        # with open(filepath, "r", encoding="utf-8") as f_in:
+        #     original_tweets = json.load(f_in)
+        # f_in.close()
+        with open(args.filter_src_folder + "\\merged_original_tweets.json", "r", encoding="utf-8") as f:
+            original_tweets = json.load(f)
+
+        # get the list of retweets
+        # filepath = args.filter_src_folder + "\\merged_retweets.json"
+        # retweets = {}
+        # with open(filepath, "r", encoding="utf-8") as f_in:
+        #     retweets = json.load(f_in)
+        # f_in.close()
+        with open(args.filter_src_folder + "\\merged_retweets.json", "r", encoding="utf-8") as f:
+            retweets = json.load(f)
+
+        # iterate through retweets appending each to the original tweet's list
+        original_to_retweet_list = {k: [] for k, _ in original_tweets.items()}
+        for retweet_id, v in retweets.items():
+            original_tweet_id = v['fk_original_tweet']
+            original_to_retweet_list[original_tweet_id].append(retweet_id)
+
+        # filter based on number of retweets
+        MIN_RETWEETS = 8
+        MAX_RETWEETS = 8
+        filtered = {}
+        filtered = {k: v for k, v in original_to_retweet_list.items() if (
+            len(original_to_retweet_list[k]) >= MIN_RETWEETS and
+            len(original_to_retweet_list[k]) <= MAX_RETWEETS)}
+
+        with open(args.filter_dst_folder + "\\filtered_map.json", "w", encoding="utf-8") as f:
+            json.dump(filtered, f, indent=4)
+        print(f"number of filtered original tweets = {len(filtered)}")
+
+        filtered_original_tweets = set(filtered.keys())
+        filtered_retweets = set()
+        for k, v in filtered.items():
+            filtered_retweets.update(v)
+
+        with open(args.filter_dst_folder + "\\filtered_original_tweets.json", "w", encoding="utf-8") as f:
+            json.dump(list(filtered_original_tweets), f, indent=4)
+        with open(args.filter_dst_folder + "\\filtered_retweets.json", "w", encoding="utf-8") as f:
+            json.dump(list(filtered_retweets), f, indent=4)
+
+        print("done")
 
     logger.info("done")
 

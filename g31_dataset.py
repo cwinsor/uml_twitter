@@ -43,48 +43,77 @@ class GeoCoV19GraphDataset(InMemoryDataset):
     def download(self):
         pass
 
-    def _get_tweets_and_retweets():
+    # def _get_tweets_and_retweets():
 
-        # make a map: original tweet to [list of retweets]
-        filepath = "D:\\dataset_covid_GeoCovGrHomogeneous\\raw\\merged_original_tweets.json"
-        print(f"processing {filepath}")
-        original_tweets = {}
-        with open(filepath, "r", encoding="utf-8") as f_in:
-            original_tweets = json.load(f_in)
-        f_in.close()
+    #     # make a map: original tweet to [list of retweets]
+    #     filepath = "D:\\dataset_covid_GeoCovGrHomogeneous\\raw\\merged_original_tweets.json"
+    #     print(f"processing {filepath}")
+    #     original_tweets = {}
+    #     with open(filepath, "r", encoding="utf-8") as f_in:
+    #         original_tweets = json.load(f_in)
+    #     f_in.close()
 
-        # here we get the original tweets as a dict with an empty list to start
-        original_to_retweet_list = {}
-        for k, v in original_tweets.items():
-            original_to_retweet_list[k] = []
+    #     # here we get the original tweets as a dict with an empty list to start
+    #     original_to_retweet_list = {}
+    #     for k, v in original_tweets.items():
+    #         original_to_retweet_list[k] = []
 
-        # get the list of retweets
-        filepath = "D:\\dataset_covid_GeoCovGrHomogeneous\\raw\\merged_retweets.json"
-        print(f"processing {filepath}")
-        retweets = {}
-        with open(filepath, "r", encoding="utf-8") as f_in:
-            retweets = json.load(f_in)
-        f_in.close()
+    #     # get the list of retweets
+    #     filepath = "D:\\dataset_covid_GeoCovGrHomogeneous\\raw\\merged_retweets.json"
+    #     print(f"processing {filepath}")
+    #     retweets = {}
+    #     with open(filepath, "r", encoding="utf-8") as f_in:
+    #         retweets = json.load(f_in)
+    #     f_in.close()
 
-        # iterate through retweets appending each to the original tweet's list
-        for retweet_id, v in retweets.items():
-            original_tweet_id = v['fk_original_tweet']
-            original_to_retweet_list[original_tweet_id].append(retweet_id)
+    #     # iterate through retweets appending each to the original tweet's list
+    #     for retweet_id, v in retweets.items():
+    #         original_tweet_id = v['fk_original_tweet']
+    #         original_to_retweet_list[original_tweet_id].append(retweet_id)
 
-        # the majority of tweets only get 1 retweet which is not interesting so get a reasonable sample
-        MIN_RETWEETS = 6
-        MAX_RETWEETS = 8
-        original_to_retweet_selected = {}
-        for orig_tw, ret_list in original_to_retweet_list.items():
-            if len(ret_list) >= MIN_RETWEETS and len(ret_list) <= MAX_RETWEETS:
-                original_to_retweet_selected[orig_tw] = ret_list
+    #     # the majority of tweets only get 1 retweet which is not interesting so get a reasonable sample
+    #     MIN_RETWEETS = 6
+    #     MAX_RETWEETS = 8
+    #     original_to_retweet_selected = {}
+    #     for orig_tw, ret_list in original_to_retweet_list.items():
+    #         if len(ret_list) >= MIN_RETWEETS and len(ret_list) <= MAX_RETWEETS:
+    #             original_to_retweet_selected[orig_tw] = ret_list
 
-        return original_to_retweet_selected, original_tweets, retweets
+    #     return original_to_retweet_selected, original_tweets, retweets
     
     def process(self):
 
-        graphs, nodes_type_1, nodes_type_2 = self._get_tweets_and_retweets()
-        
+        # nodes_type 1 = dictionary[original_tweet_id] -> dictionary["original_text", "other_features..."]
+        # nodes_type_2 = dictionary[retweet_id] -> dictionary['date', 'fk_original_tweet_id', "other_features..."]
+        # type2_to_type_2 = dictionary[original_tweet_id] -> list[retweet_ids]
+        type1_to_type2, nodes_type_1, nodes_type_2 = self._get_tweets_and_retweets()
+
+        # following
+        # https://towardsdatascience.com/hands-on-graph-neural-networks-with-pytorch-pytorch-geometric-359487e221a8
+
+        data_list = []
+
+        for original_tweet_id, retweet_list in type1_to_type2.items():
+            graph = _make_data_object(original_tweet_id, retweet_list, nodes_type_1, nodes_type_2)
+            data_list.append(graph)
+
+        def _make_data_object(original_tweet_id, retweet_list, nodes_type_1, nodes_type_2):
+            # following https://pytorch-geometric.readthedocs.io/en/latest/notes/heterogeneous.html#creating-heterogeneous-graphs
+
+            data = HeteroData()
+
+            features_original_tweet = torch.rand(4)  # (to be) Hugging Face BERT embeddings
+            data['original_tweet'].x = features_original_tweet  # [1 original tweet, num_features_original_tweet]
+
+            features_retweets = torch.rand((len(retweet_list), 3))  # (to be) retweet features such as yy/mm/dd
+            data['retweets'].x = TorchTensor()  # [num_retweets, num_features_retweet]
+
+            edge_list = [ [retweet_id, original_tweet_id] for retweet_id in retweet_list ]
+            data['retweet', 'of', 'original_tweet']  # [2, num_edges_retweets]
+
+            ot_data = [ot_v, ]
+            ot_nodes.append
+
         filepath = self.root + "/raw/merged_original_tweets.json",
         print(f"processing {filepath}")
         with open(filepath, "r", encoding="utf-8") as myfile:
