@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--perform_parse", default=False, action="store_true")
 parser.add_argument("--daily_raw_folder", type=str, required=False)
 parser.add_argument("--daily_parsed_folder", type=str, required=False)
-parser.add_argument("--daily_raw_file_in", type=str, required=False)
+parser.add_argument("--daily_file_list", nargs='+', type=str, required=False)
 
 # merge
 parser.add_argument("--perform_merge", default=False, action="store_true")
@@ -29,7 +29,7 @@ class RawTweet():
         else:
             self.is_retweet = True
 
-        self.original_tweet_id = tweet["retweeted_status"]["id"]
+        self.original_tweet_id = tweet["retweeted_status"]["id_str"]
         self.original_tweet_data = {}
         self.original_tweet_data['text'] = tweet["retweeted_status"]["full_text"]
 
@@ -49,32 +49,35 @@ def main(args):
     logger.info("start")
 
     if args.perform_parse:
+        def do_one_parse(filename):
+            file_in = args.daily_raw_folder + filename
+            with open(file_in, "r", encoding="utf-8") as f_in:
 
-        file_in = args.daily_raw_folder + args.daily_raw_file_in
-        with open(file_in, "r", encoding="utf-8") as f_in:
+                print(f"processing {file_in}")
+                tweets = ijson.items(f_in, "", multiple_values=True)
 
-            print(f"processing {file_in}")
-            tweets = ijson.items(f_in, "", multiple_values=True)
+                original_tweets = {}
+                retweets = {}
+                for tweet in tweets:
+                    in_tweet = RawTweet(tweet)
+                    if in_tweet.is_retweet:
+                        original_tweets[in_tweet.original_tweet_id] = in_tweet.original_tweet_data
+                        retweets[in_tweet.retweet_id] = in_tweet.retweet_data
 
-            original_tweets = {}
-            retweets = {}
-            for tweet in tweets:
-                in_tweet = RawTweet(tweet)
-                if in_tweet.is_retweet:
-                    original_tweets[in_tweet.original_tweet_id] = in_tweet.original_tweet_data
-                    retweets[in_tweet.retweet_id] = in_tweet.retweet_data
+                file_out = args.daily_parsed_folder + "original_tweets_" + filename
+                with open(file_out, "w", encoding="utf-8") as f_out:
+                    temp = json.dumps(original_tweets, indent=4)
+                    f_out.write(temp)
+                f_out.close()
 
-            file_out = args.daily_parsed_folder + "original_tweets_" + args.daily_raw_file_in
-            with open(file_out, "w", encoding="utf-8") as f_out:
-                temp = json.dumps(original_tweets, indent=4)
-                f_out.write(temp)
-            f_out.close()
+                file_out = args.daily_parsed_folder + "retweets_" + filename
+                with open(file_out, "w", encoding="utf-8") as f_out:
+                    temp = json.dumps(retweets, indent=4)
+                    f_out.write(temp)
+                f_out.close()
 
-            file_out = args.daily_parsed_folder + "retweets_" + args.daily_raw_file_in
-            with open(file_out, "w", encoding="utf-8") as f_out:
-                temp = json.dumps(retweets, indent=4)
-                f_out.write(temp)
-            f_out.close()
+        for fname in args.daily_file_list:
+            do_one_parse(fname)
 
     # merging
     if args.perform_merge:

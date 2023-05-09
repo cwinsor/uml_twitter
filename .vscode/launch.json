@@ -256,30 +256,29 @@
         },
 
         {
-            "name": "30_daily_parse",
+            "name": "g30_daily_parse",
             "type": "python",
             "request": "launch",
-            "program": "30_preprocess.py",
+            "program": "g30_preprocess.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
                 "--perform_parse",
                 "--daily_raw_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\1_raw\\",
                 "--daily_parsed_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\2_parsed\\",
-                // "--daily_raw_folder", "/mnt/d/dataset_covid_GeoCovGrHomogeneous/1_raw/",
-                // "--daily_parsed_folder", "/mnt/d/dataset_covid_GeoCovGrHomogeneous/2_parsed/",
 
-                // "--daily_raw_file_in", "ids_geo_2020-02-01.jsonl",
-                // "--daily_raw_file_in", "ids_geo_2020-02-02.jsonl",
-                "--daily_raw_file_in", "ids_geo_2020-02-03.jsonl",
+                "--daily_file_list",
+                "ids_geo_2020-02-01.jsonl",
+                "ids_geo_2020-02-02.jsonl",
+                "ids_geo_2020-02-03.jsonl",
             ]
         },
         
         {
-            "name": "30_merge",
+            "name": "g30_merge",
             "type": "python",
             "request": "launch",
-            "program": "30_preprocess.py",
+            "program": "g30_preprocess.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
@@ -287,14 +286,24 @@
                 "--merge_src_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\2_parsed",
                 "--merge_dst_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\raw",
 
-                "--merge_file_list", "ids_geo_2020-02-01.jsonl", "ids_geo_2020-02-02.jsonl",
-                // "--merge_src_file_original_tweets", "original_tweets_ids_geo_2020-02-01.jsonl",
-                //"--merge_src_file_original_tweets", "original_tweets_ids_geo_2020-02-02.jsonl",
-                // "--merge_src_file_original_tweets", "original_tweets_ids_geo_2020-02-03.jsonl",
+                "--merge_file_list",
+                "ids_geo_2020-02-01.jsonl",
+                "ids_geo_2020-02-02.jsonl",
+                "ids_geo_2020-02-03.jsonl",
             ]
         },
 
-
+        {
+            "name": "g31_test_2",
+            "type": "python",
+            "request": "launch",
+            "program": "g31_dataset.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "--run_test_2",
+            ]
+        },
 
     ]
 }
