@@ -42,7 +42,7 @@ class Parser():
             return
 
         re_tweet_id = raw["id_str"]
-        re_tweet_date = [raw["created_at"]]
+        re_tweet_date = raw["created_at"]
         original_id = raw["retweeted_status"]["id_str"]
         original_text = raw["retweeted_status"]["full_text"]
 
@@ -57,6 +57,7 @@ class Parser():
             grouped[k] = [item[1] for item in group]
             # print()
         return grouped
+
 
 def main(args):
 
@@ -118,7 +119,7 @@ def main(args):
             if len(grplist) >= MIN_RETWEETS and len(grplist) <= MAX_RETWEETS:
                 keepset_originals.add(key)
                 keepset_re_tweets.update(grplist)
-       
+
         o2r_filtered = [item for item in o2r if item[0] in keepset_originals and item[1] in keepset_re_tweets]
 
         print("after filtering:")
@@ -143,45 +144,6 @@ def main(args):
             json.dump(o2r_filtered, f, indent=4)
 
         print("done")
-
-
-    # # filter
-    # if args.do_filterxxxxx:
-
-    #     # make reduced/filtered list
-    #     with open(args.filter_src_folder + "\\map_o_2_r.jsonl", "r", encoding="utf-8") as f:
-    #         map_o_2_r = json.load(f)
-    #     MIN_RETWEETS = 8
-    #     MAX_RETWEETS = 8
-    #     filtered_map_o_2_r = {k: v for k, v in map_o_2_r.items() if len(v) >= MIN_RETWEETS and len(v) <= MAX_RETWEETS}
-    #     with open(args.filter_dst_folder + "\\filtered_map_o_2_r.jsonl", "w", encoding="utf-8") as f:
-    #         json.dump(filtered_map_o_2_r, f, indent=4)
-
-    #     # reconstruct the other tables
-    #     with open(args.filter_src_folder + "\\originals.jsonl", "r", encoding="utf-8") as f:
-    #         originals = json.load(f)
-    #     with open(args.filter_src_folder + "\\re_tweets.jsonl", "r", encoding="utf-8") as f:
-    #         re_tweets = json.load(f)
-    #     with open(args.filter_src_folder + "\\map_r_2_o.jsonl", "r", encoding="utf-8") as f:
-    #         map_r_2_o = json.load(f)
-
-    #     filtered_map_r_2_o = {}
-    #     filtered_originals = {}
-    #     filtered_re_tweets = {}
-    #     for original_id, retweet_list in filtered_map_o_2_r.items():
-    #         filtered_originals[original_id] = originals[original_id]
-    #         for retweet_id in retweet_list:
-    #             filtered_re_tweets[retweet_id] = re_tweets[retweet_id]
-    #             filtered_map_r_2_o[retweet_id] = original_id
-
-    #     with open(args.filter_dst_folder + "\\filtered_originals.jsonl", "w", encoding="utf-8") as f:
-    #         json.dump(filtered_originals, f, indent=4)
-    #     with open(args.filter_dst_folder + "\\filtered_re_tweets.jsonl", "w", encoding="utf-8") as f:
-    #         json.dump(filtered_re_tweets, f, indent=4)
-    #     with open(args.filter_dst_folder + "\\filtered_map_r_2_o.jsonl", "w", encoding="utf-8") as f:
-    #         json.dump(filtered_map_r_2_o, f, indent=4)
-
-    #     print("done")
 
     logger.info("done")
 

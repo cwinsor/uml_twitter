@@ -353,5 +353,17 @@
             ]
         },
 
+        {
+            "name": "g41_train_test",
+            "type": "python",
+            "request": "launch",
+            "program": "g41_train_test.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--src_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\3_filtered",
+            ]
+        },
+
     ]
 }
