@@ -8,18 +8,31 @@ from torch_geometric.data import InMemoryDataset
 from g19_hetero_data import G19HeteroData
 from sentence_transformers import SentenceTransformer
 from torch_geometric.transforms import RandomLinkSplit, ToUndirected
+from torch_geometric.nn import MessagePassing
+import torch_geometric.transforms as T
+from torch_geometric.datasets import OGB_MAG
+from torch_geometric.nn import HeteroConv, GCNConv, SAGEConv, GATConv, Linear
+import torch.nn.functional as F
 
 '''
 Heterogeneous Graph Train/Test
-following sample code:
+
+References:
+
+Sample code:
 https://github.com/pyg-team/pytorch_geometric/blob/master/examples/hetero/load_csv.py
-and tutorial:
+https://github.com/pyg-team/pytorch_geometric/blob/master/examples/hetero/*
+
+Tutorial:
 https://pytorch-geometric.readthedocs.io/en/latest/tutorial/load_csv.html
 https://pytorch-geometric.readthedocs.io/en/latest/tutorial/heterogeneous.html
 
-Non-torch references include:
+Non-torch GNN
 https://towardsdatascience.com/hands-on-graph-neural-networks-with-pytorch-pytorch-geometric-359487e221a8
 https://towardsdatascience.com/a-gentle-introduction-to-graph-neural-network-basics-deepwalk-and-graphsage-db5d540d50b3
+
+Self-supervised training on Graphs, and top-level view:
+https://medium.com/stanford-cs224w/self-supervised-learning-for-graphs-963e03b9f809
 
 '''
 
@@ -56,15 +69,15 @@ def load_edges_from_file(filename, src_index_col, src_mapping, dst_index_col, ds
     edge_index = torch.tensor([src, dst])
 
     edge_attr = None
-    if encoders is not None:
-        edge_attrs = [encoder(df[col]) for col, encoder in encoders.items()]
-        edge_attr = torch.cat(edge_attrs, dim=-1)
+    # if encoders is not None:
+    #     edge_attrs = [encoder(df[col]) for col, encoder in encoders.items()]
+    #     edge_attr = torch.cat(edge_attrs, dim=-1)
 
     return edge_index, edge_attr
 
 
 class SequenceEncoder:
-    # The 'SequenceEncoder' encodes raw column strings into embeddings.
+    r"""'SequenceEncoder' encodes raw column strings into embeddings."""
     def __init__(self, model_name='all-MiniLM-L6-v2', device=None):
         self.device = device
         self.model = SentenceTransformer(model_name, device=device)
@@ -78,7 +91,7 @@ class SequenceEncoder:
 
 
 class DateEncoder:
-    # DateEncoder encodes month/day columns into embeddings
+    r"""DateEncoder encodes month/day columns into embeddings."""
     def __init__(self, device=None):
         self.device = device
 
@@ -107,8 +120,7 @@ class DateEncoder:
 
 
 class IdentityEncoder:
-    # The 'IdentityEncoder' takes the raw column values and converts them to
-    # PyTorch tensors.
+    r"""IdentityEncoder' takes the raw column values and converts them to PyTorch tensors."""
     def __init__(self, dtype=None):
         self.dtype = dtype
 
@@ -116,7 +128,32 @@ class IdentityEncoder:
         return torch.from_numpy(df.values).view(-1, 1).to(self.dtype)
 
 
+class GeoCov19HeteroGNN(torch.nn.Module):
+    r"""GeoCov19HeteroGNN is a heterogeneous graph based on data from the GeoCov19 Dataset.
+    We are following https://pytorch-geometric.readthedocs.io/en/latest/notes/heterogeneous.html#using-the-heterogeneous-convolution-wrapper"""
+    def __init__(self, hidden_channels, out_channels, num_layers):
+        super().__init__()
+
+        self.convs = torch.nn.ModuleList()
+        for _ in range(num_layers):
+            conv = HeteroConv({
+                ('retweet', 'of', 'original_tweet'): GCNConv(-1, hidden_channels, add_self_loops=False),
+                ('original_tweet', 'rev_of', 'retweet'): SAGEConv((-1, -1), hidden_channels),
+            }, aggr='sum')
+            self.convs.append(conv)
+
+        self.lin = Linear(hidden_channels, out_channels)
+
+    def forward(self, x_dict, edge_index_dict):
+        for conv in self.convs:
+            x_dict = conv(x_dict, edge_index_dict)
+            x_dict = {key: x.relu() for key, x in x_dict.items()}
+        return self.lin(x_dict['author'])
+
+
 def main(args):
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     print("create embeddings for original tweets using BERT-base-uncased")
     original_tweet_x, original_tweet_mapping = load_nodes_from_file(
@@ -163,10 +200,51 @@ def main(args):
         rev_edge_types=[('original_tweet', 'rev_of', 'retweet')],
     )
     train_data, val_data, test_data = transform(data)
-    print(f"train_data\n{train_data}")
-    print(f"val_data\n{val_data}")
-    print(f"test_data\n{test_data}")
-    print("done")
+    print(f"---train_data---\n{train_data}")
+    print(f"---val_data---\n{val_data}")
+    print(f"---test_data---\n{test_data}")
+
+    # zona = data.num_classes
+    model = GeoCov19HeteroGNN(hidden_channels=64,
+                              # out_channels=data.num_classes,
+                              out_channels=3,  # ZONA
+                              num_layers=2)
+    model = model.to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0003)
+
+    def train():
+        model.train()
+        optimizer.zero_grad()
+
+        # d(self, x_dict, edge_index_dict):
+
+        out = model(x_dict=train_data.x_dict,
+                    edge_index_dict=train_data.edge_index_dict)
+        loss = F.mse_loss(out, train_data['retweet', 'original_tweet'].edge_label)
+        loss.backward()
+        optimizer.step()
+        return float(loss)
+
+    @torch.no_grad()
+    def test(data):
+        model.eval()
+        out = model(
+            data.x_dict,
+            data.edge_index_dict,
+            data['user', 'movie'].edge_label_index,
+        ).clamp(min=0, max=5)
+        rmse = F.mse_loss(out, data['user', 'movie'].edge_label).sqrt()
+        return float(rmse)
+
+    for epoch in range(1, 3):
+        loss = train()
+        train_rmse = test(train_data)
+        val_rmse = test(val_data)
+        test_rmse = test(test_data)
+        print(f'Epoch: {epoch:04d}, Loss: {loss:.4f}, Train: {train_rmse:.4f}, '
+            f'Val: {val_rmse:.4f}, Test: {test_rmse:.4f}')
+
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
