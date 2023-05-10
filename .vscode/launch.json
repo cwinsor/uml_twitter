@@ -348,8 +348,8 @@
             "justMyCode": true,
             "args": [
                 "--do_filter",
-                "--filter_src_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\2_parsed",
-                "--filter_dst_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\3_filtered",
+                "--filter_src_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\2_parsed\\",
+                "--filter_dst_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\3_filtered\\",
             ]
         },
 
