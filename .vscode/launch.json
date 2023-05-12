@@ -23,8 +23,8 @@
             "justMyCode": true,
             "args": [
                 "--do_parse",
-                "--parse_src_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\1_raw\\",
-                "--parse_dst_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\2_parsed\\",
+                "--parse_src_folder", "data_raw\\",
+                "--parse_dst_folder", "data_parsed\\",
 
                 "--parse_file_list",
                 "ids_geo_2020-02-01.jsonl",
@@ -42,8 +42,8 @@
             "justMyCode": true,
             "args": [
                 "--do_filter",
-                "--filter_src_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\2_parsed\\",
-                "--filter_dst_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\3_filtered\\",
+                "--filter_src_folder", "data_parsed\\",
+                "--filter_dst_folder", "data_filtered\\",
             ]
         },
 
@@ -55,7 +55,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--src_folder", "D:\\dataset_covid_GeoCovGrHomogeneous\\3_filtered",
+                "--src_folder", "data_filtered\\",
             ]
         },
 

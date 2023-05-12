@@ -1,16 +1,10 @@
 import argparse
-import ijson
 import json
 
 import torch
 from torch_geometric.data import HeteroData
-from torch_geometric.data import InMemoryDataset
-from g19_hetero_data import G19HeteroData
 from sentence_transformers import SentenceTransformer
 from torch_geometric.transforms import RandomLinkSplit, ToUndirected
-from torch_geometric.nn import MessagePassing
-import torch_geometric.transforms as T
-from torch_geometric.datasets import OGB_MAG
 from torch_geometric.nn import HeteroConv, GCNConv, SAGEConv, GATConv, Linear
 import torch.nn.functional as F
 

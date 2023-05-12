@@ -4,7 +4,7 @@ import logging
 import json
 import ijson
 
-from aaa_my_common import my_group_by
+from common import my_group_by
 
 # runtime arguments
 parser = argparse.ArgumentParser()
