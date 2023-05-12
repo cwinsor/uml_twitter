@@ -43,7 +43,7 @@ parser.add_argument("--src_folder", type=str, required=True)
 
 def load_nodes_from_file(filename, encoders=None, **kwargs):
 
-    with open(args.src_folder + "\\" + filename, "r", encoding="utf-8") as f:
+    with open(args.src_folder + filename, "r", encoding="utf-8") as f:
         the_data = json.load(f)
 
     mapping = {index: i for i, index in enumerate(the_data.keys())}
