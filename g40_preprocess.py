@@ -72,7 +72,7 @@ def main(args):
 
         parser = Parser()
 
-        print("read raw files...")
+        print("parsing files...")
         for filename in args.parse_file_list:
             print(f" {filename}")
             with open(args.parse_src_folder + filename, "r", encoding="utf-8") as f:
